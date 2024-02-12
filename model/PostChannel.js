@@ -12,7 +12,9 @@ class PostChannel extends Channel {
     }
 
     trigger() {
-        this.request("POST").send(JSON.stringify(this.input.get()))
+        let post = this.request("POST")
+        post.setRequestHeader('Content-Type', 'application/json;charset=UTF-8')
+        post.send(JSON.stringify(this.input.get()))
         return this
     }
 
