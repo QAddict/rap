@@ -9,12 +9,16 @@ function observeRequest(method, uri, state, result) {
     let request = new XMLHttpRequest()
     state.set({state: XMLHttpRequest.UNSENT, loaded: 0, loading: false})
     request.onreadystatechange = () => {
-        if(request.readyState === XMLHttpRequest.DONE) if(request.status === 200 || request.status === 0) try {
-            result.set(request)
-        } catch (error) {
-            request.onerror(null)
-        } else {
-            request.onerror(null)
+        state.state.set(request.readyState)
+        if(request.readyState === XMLHttpRequest.DONE) {
+            state.loading.set(false)
+            if(request.status === 200 || request.status === 0) try {
+                result.set(request)
+            } catch (error) {
+                request.onerror(null)
+            } else {
+                request.onerror(null)
+            }
         }
     }
     request.onprogress = event => state.set({
