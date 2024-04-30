@@ -200,9 +200,11 @@ export function linearizePageableTree(pagedTreeModel) {
     })
 }
 
-export function treeNode(name, original) {
+export function treeColumn(name, original) {
     return new DataTransformingColumn(name, (data, td, index, table) => {
-        td.paddingLeft(data.level, 'em').add(expander(attach(data.node).expanded.observeChanges(trigger(original))))
-        return " " + data.name
+        td.paddingLeft(data.level, 'em')
+        if(data.node.children)
+            td.add(expander(attach(data.node).expanded.observeChanges(trigger(original))))
+        return " " + data.node.name
     })
 }

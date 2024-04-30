@@ -11,7 +11,7 @@
     </style>
     <script type="module">
         import {body, div, set, state} from "./mvc.js";
-        import {dataTable, linearizeSimpleTreeModel, row, treeNode} from "./ui.js";
+        import {dataTable, linearizeSimpleTreeModel, row, treeColumn} from "./ui.js";
 
         let model = state("A")
         let treeModel = state([
@@ -27,7 +27,7 @@
                 {firstName: "Lukas", lastName: "Jarolim"},
             ])).column(row.firstName, row.lastName),
             dataTable(linearizeSimpleTreeModel(treeModel)).column(
-                treeNode("Node", treeModel)
+                treeColumn("Node", treeModel)
             )
         )
 
