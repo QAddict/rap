@@ -4,34 +4,31 @@
     <meta charset="UTF-8">
     <title>Title</title>
     <style>
-        table {
-            border: 1px solid silver;
-            box-shadow: 2px 2px 5px;
-        }
-        td {
-            border-top: 1px solid grey;
-        }
-        th td {
-            text-align: left;
-            padding-left: 1em;
-            padding-right: 1em;
-        }
-        th {
-            background-color: silver;
-            text-transform: capitalize;
-        }
+        table {border: 1px solid silver;box-shadow: 2px 2px 5px;}
+        td {border-top: 1px solid grey;}
+        th td {text-align: left;padding-left: 1em;padding-right: 1em;}
+        th {background-color: silver;text-transform: capitalize;}
     </style>
     <script type="module">
         import {body, div, set, state} from "./mvc.js";
-        import {dataTable, row} from "./ui.js";
+        import {dataTable, linearizeSimpleTreeModel, row, treeNode} from "./ui.js";
 
         let model = state("A")
+        let treeModel = state([
+            {name: "Root", data: {count: 10}, expanded: false, children: [
+                    {name: 'Child 1', data: {count: 11}, expanded: false}
+                ]}
+        ])
+
         body(
             div(model).onClick(set(model, "B")),
             dataTable(state([
                 {firstName: "Ondrej", lastName: "Fischer"},
                 {firstName: "Lukas", lastName: "Jarolim"},
-            ])).column(row.firstName, row.lastName)
+            ])).column(row.firstName, row.lastName),
+            dataTable(linearizeSimpleTreeModel(treeModel)).column(
+                treeNode("Node", treeModel)
+            )
         )
 
     </script>

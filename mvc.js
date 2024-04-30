@@ -47,6 +47,20 @@ export function stateModel(value = null) {
     return isObservable(value) ? value : new StateModel(value)
 }
 
+export class AttachedModel extends Model {
+    constructor(object, name) {super(name);this.__object = object;this._observers = []}
+    get() {return this.__object[this.__name];}
+    observeChanges(observer) {this._observers.push(observer); return this}
+    trigger() {this._observers.forEach(observer => observer(this.get())); return this}
+    set(newValue) {this.__object[this.__name] = newValue; return this.trigger()}
+}
+
+export function attach(object) {
+    return new Proxy({}, {
+        get(target, name) {return target[name] === undefined ? new AttachedModel(object, name) : target[name]}
+    })
+}
+
 export class PropertyModel extends Model {
     constructor(parent, name) {super(name); this.__parent = parent;}
     set(newValue) {this.__parent.get()[this.__name] = newValue; return this.trigger()}

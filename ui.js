@@ -1,28 +1,4 @@
-import {
-    a,
-    captionBottom,
-    captionTop,
-    checkbox,
-    div,
-    each, form,
-    HtmlBuilder, inputText,
-    label,
-    node, reset, set,
-    span,
-    state,
-    stateModel, submit,
-    table,
-    tbody,
-    td,
-    th,
-    thead,
-    to,
-    toggle,
-    tr,
-    transform,
-    trigger,
-    when
-} from "./mvc.js";
+import {a, attach, captionBottom, captionTop, checkbox, div, each, falseTo, form, HtmlBuilder, inputText, label, node, reset, set, span, state, stateModel, submit, table, tbody, td, th, thead, to, toggle, tr, transform, trigger, when} from "./mvc.js";
 
 export function expander(model, enabled = stateModel(true)) {
     return span()
@@ -205,11 +181,15 @@ export function searchTable(searchCall, page = searchCall.input.page, query = se
     return dataTable(result.content, result.pageable.offset).add(
         captionTop().setClass('rap-search').textLeft().nowrap().add(searchControls(query)),
         captionTop().setClass('rap-error').textLeft().nowrap().add(searchCall.error),
-        captionBottom().setClass('rap-paging').textLeft().nowrap().add(pageControls(page, result, searchCall.stateModel.loading))
+        captionBottom().setClass('rap-paging').textLeft().nowrap().add(pageControls(page, result, searchCall.state.loading))
     )
 }
-export function linearizeSimpleTree(treeModel, level = 0) {
-    return transform(treeModel, items => items.flatMap(item => [{level: level, node: item}, ...(item.expanded ? linearizeSimpleTree(item.children, level + 1) : [])]))
+export function linearizeSimpleTree(items, level = 0) {
+    return items.flatMap(item => [{level: level, node: item}, ...(item.expanded && item.children ? linearizeSimpleTree(item.children, level + 1) : [])])
+}
+
+export function linearizeSimpleTreeModel(model) {
+    return transform(model, linearizeSimpleTree)
 }
 
 export function linearizePageableTree(pagedTreeModel) {
@@ -217,5 +197,12 @@ export function linearizePageableTree(pagedTreeModel) {
         let l = page.content.map(item => null).flatMap(linearizePageableTree)
         if(!page.first) l.unshift(null)
         if(!page.last) l.push(null)
+    })
+}
+
+export function treeNode(name, original) {
+    return new DataTransformingColumn(name, (data, td, index, table) => {
+        td.paddingLeft(data.level, 'em').add(expander(attach(data.node).expanded.observeChanges(trigger(original))))
+        return " " + data.name
     })
 }
