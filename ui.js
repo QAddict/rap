@@ -1,4 +1,28 @@
-import {a, captionBottom, captionTop, checkbox, div, each, HtmlBuilder, label, node, span, state, stateModel, table, tbody, td, th, thead, toggle, tr, transform, trigger, when} from "./mvc.js";
+import {
+    a,
+    captionBottom,
+    captionTop,
+    checkbox,
+    div,
+    each, form,
+    HtmlBuilder, inputText,
+    label,
+    node, reset, set,
+    span,
+    state,
+    stateModel, submit,
+    table,
+    tbody,
+    td,
+    th,
+    thead,
+    to,
+    toggle,
+    tr,
+    transform,
+    trigger,
+    when
+} from "./mvc.js";
 
 export function expander(model, enabled = stateModel(true)) {
     return span()
@@ -137,7 +161,53 @@ export class DataTable extends HtmlBuilder {
 
 }
 
+export function dataTable(result) {
+    return new DataTable(result)
+}
 
+function pageNav(which, action, boundaryModel) {
+    return a().setClass('rap-paging ' + which + '-page')
+        .title('Go to ' + which + ' page')
+        .color(transform(boundaryModel, to('silver')))
+        .onClick(when(transform(boundaryModel, negate), action))
+}
+
+export function pageControls(page, result, loading) {
+    return form().onSubmit(event => page.set(parseInt(event.target.page.value) - 1)).add(
+        pageNav('first', set(page, 0), result.first).add('\u226A'),
+        pageNav('previous', set(page, transform(result.number, v => v - 1)), result.first).add('<'),
+        span().setClass('paging current-page').add('Page: ', input('page').width(2, 'em').value(transform(result, v => v.numberOfElements > 0 ? v.number + 1 : 0)), ' of ', result.totalPages, ' (rows ', result.pageable.offset.map(v => v + 1), ' - ', functionModel((a, b) => a + b, result.pageable.offset, result.numberOfElements), ' of ', result.totalElements, ')'),
+        pageNav('next', set(page, transform(result.number, v => v + 1)), result.last).add('>'),
+        pageNav('last', set(page, transform(result.totalPages, v => v - 1)), result.last).add('\u226B'),
+        a().setClass('paging reload-page', transform(loading, to(' data-loading'))).add('\u21BB').title('Reload page').onClick(trigger(page)),
+        //span().setClass('paging load-timer').add(transform(loading, to(' loading ', ' loaded in ')), timer(loading), ' ms.')
+    )
+}
+
+export function pageTable(pageCall, page = pageCall.input.page) {
+    pageCall = state(pageCall)
+    return dataTable(pageCall.map(v => v.content), pageCall.pageable.offset)
+        .captionTop(pageCall.error)
+        .captionBottom(pageControls(page, pageCall, pageCall.loading))
+}
+
+export function searchControls(query) {
+    return form().onSubmit(event => query.set(event.target.query.value)).onReset(set(query, '')).add(
+        inputText('query').value(query),
+        submit('Search'),
+        reset('Clear')
+    )
+}
+
+export function searchTable(searchCall, page = searchCall.input.page, query = searchCall.input.query, result = searchCall.output) {
+    // This line is currently causing duplicate rest call with intermediate state.
+    // query.onChange(() => page.set(0), false, false)
+    return dataTable(result.content, result.pageable.offset).add(
+        captionTop().setClass('rap-search').textLeft().nowrap().add(searchControls(query)),
+        captionTop().setClass('rap-error').textLeft().nowrap().add(searchCall.error),
+        captionBottom().setClass('rap-paging').textLeft().nowrap().add(pageControls(page, result, searchCall.stateModel.loading))
+    )
+}
 export function linearizeSimpleTree(treeModel, level = 0) {
     return transform(treeModel, items => items.flatMap(item => [{level: level, node: item}, ...(item.expanded ? linearizeSimpleTree(item.children, level + 1) : [])]))
 }
@@ -148,8 +218,4 @@ export function linearizePageableTree(pagedTreeModel) {
         if(!page.first) l.unshift(null)
         if(!page.last) l.push(null)
     })
-}
-
-export function dataTable(result) {
-    return new DataTable(result)
 }
