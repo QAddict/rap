@@ -1,4 +1,4 @@
-import {a, attach, captionBottom, captionTop, checkbox, div, each, falseTo, form, HtmlBuilder, inputText, label, node, reset, set, span, state, stateModel, submit, table, tbody, td, th, thead, to, toggle, tr, transform, trigger, when} from "./mvc.js";
+import {a, addTo, attach, captionBottom, captionTop, checkbox, ctrlKey, div, each, falseTo, form, HtmlBuilder, inputText, label, node, reset, set, span, state, stateModel, submit, table, tbody, td, th, thead, to, toggle, tr, transform, trigger, when} from "./mvc.js";
 
 export function expander(model, enabled = stateModel(true)) {
     return span()
@@ -63,7 +63,6 @@ export class DataTable extends HtmlBuilder {
         let columnMove = stateModel()
         this.columnsModel = state([])
         this.columnsModel.observe(trigger(dataModel))
-        this.rowModel = (tr, data) => {}
         this.moveEnabled = false
         this.visibleColumnsModel = transform(this.columnsModel, cols => cols.filter(col => !col.hidden()))
         this.add(
@@ -80,6 +79,8 @@ export class DataTable extends HtmlBuilder {
             }))))
         )
     }
+
+    rowModel(tr, data) {}
 
     repaint() {
         this.columnsModel.trigger()
@@ -107,6 +108,12 @@ export class DataTable extends HtmlBuilder {
             )
         )
         return this
+    }
+
+    withSelection(selectionModel, selectedClass = 'selected') {
+        this.rowModel = (tr, data) => tr.onClick(ctrlKey(addTo(selectionModel, data), set(selectionModel, data)))
+            .addClass(transform(selectionModel, selection => selection.includes(data) ? 'selected' : null))
+        return this.repaint()
     }
 
     customizeRow(customizer) {

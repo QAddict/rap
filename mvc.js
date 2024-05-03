@@ -440,6 +440,9 @@ export class HtmlBuilder extends ElementBuilder {
     onChange(handler, bubble) {return this.on('change', handler, bubble)}
     onMouseOver(handler) {return this.on('mouseover', handler, true)}
     onMouseOut(handler) {return this.on('mouseout', handler, true)}
+    onKeyPress(handler) {return this.on('keypress', handler, true)}
+    onKeyDown(handler) {return this.on('keydown', handler, true)}
+    onKeyUp(handler) {return this.on('keyup', handler, true)}
     onDragstart(handler) {return this.on('dragstart', handler, true)}
     onDrag(handler) {return this.on('drag', handler, true)}
     onDrop(handler) {return this.on('drop', handler, true)}
@@ -1072,6 +1075,14 @@ export function set(model, value) {
     return isObservable(value) ? () => model.set(value.get()) : () => model.set(value)
 }
 
+export function update(model, withFunction) {
+    return () => model.update(withFunction)
+}
+
+export function addTo(arrayModel, item) {
+    return update(arrayModel, a => a.push(item))
+}
+
 /**
  * Create command to toggle value of provided model to its negation.
  *
@@ -1084,6 +1095,10 @@ export function toggle(model) {
 
 export function when(condition, command) {
     return () => condition.get() && command()
+}
+
+export function ctrlKey(ctrlHandler, defaultHandler) {
+    return (content, event) => event.ctrlKey ? ctrlHandler : defaultHandler
 }
 
 /**
