@@ -61,6 +61,7 @@ export class DataTable extends HtmlBuilder {
     constructor(dataModel, t = table()) {
         super(node(t));
         let columnMove = stateModel()
+        this.rowCustomizers = []
         this.columnsModel = state([])
         this.columnsModel.observe(trigger(dataModel))
         this.moveEnabled = false
@@ -80,7 +81,9 @@ export class DataTable extends HtmlBuilder {
         )
     }
 
-    rowModel(tr, data) {}
+    rowModel(tr, data) {
+        this.rowCustomizers.forEach(c => c(tr, data))
+    }
 
     repaint() {
         this.columnsModel.trigger()
@@ -111,13 +114,16 @@ export class DataTable extends HtmlBuilder {
     }
 
     withSelection(selectionModel, selectedClass = 'selected') {
-        this.rowModel = (tr, data) => tr.onClick(ctrlKey(addTo(selectionModel, data), set(selectionModel, data)))
-            .addClass(transform(selectionModel, selection => selection.includes(data) ? 'selected' : null))
-        return this.repaint()
+        return this.customizeRow((tr, data) => tr.onClick(ctrlKey(addTo(selectionModel, data), set(selectionModel, data)))
+            .addClass(transform(selectionModel, selection => selection.includes(data) ? 'selected' : null)))
     }
 
+    transferItems(slot) {
+        return this.customizeRow((tr, data) => tr.transfer(slot, data))
+    }
+    
     customizeRow(customizer) {
-        this.rowModel = customizer
+        this.rowCustomizers.push(customizer)
         return this.repaint()
     }
 
