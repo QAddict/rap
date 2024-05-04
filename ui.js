@@ -221,3 +221,11 @@ export function treeColumn(name, original) {
         return " " + data.node.name
     })
 }
+
+export function resizeableColumns(leftColumnContent, rightColumnContent, leftWidth = stateModel('49%')) {
+    return div(
+        div(leftColumnContent).width(leftWidth),
+        div('.').draggable().onDrop(() => {}),
+        div(rightColumnContent).auto()
+    ).flexRow()
+}
