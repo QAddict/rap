@@ -1,0 +1,7 @@
+.resizer-x:before {
+  content: '.';
+  padding 2px;
+  border 1px inset grey;
+  border-radius: 3px;
+}
+
