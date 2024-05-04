@@ -74,15 +74,11 @@ export class DataTable extends HtmlBuilder {
                     .receive(columnMove, from => this.moveColumn(from, index), 'rap-table-header-receiver', 'rap-table-header-drop')
                 return header.add(column.renderHeader(header, index, this))
             }))),
-            tbody(each(dataModel, (item, index) => tr().apply(this.rowModel, item).add(each(this.visibleColumnsModel, column => {
+            tbody(each(dataModel, (item, index) => tr().apply((tr, data) => this.rowCustomizers.forEach(c => c(tr, data)), item).add(each(this.visibleColumnsModel, column => {
                 let cell = td()
                 return cell.add(column.renderCell(item, cell, index, this))
             }))))
         )
-    }
-
-    rowModel(tr, data) {
-        this.rowCustomizers.forEach(c => c(tr, data))
     }
 
     repaint() {
@@ -114,7 +110,7 @@ export class DataTable extends HtmlBuilder {
     }
 
     withSelection(selectionModel, selectedClass = 'selected') {
-        return this.customizeRow((tr, data) => tr.onClick(ctrlKey(addTo(selectionModel, data), set(selectionModel, data)))
+        return this.customizeRow((tr, data) => tr.onClick(ctrlKey(addTo(selectionModel, data), set(selectionModel, [data])))
             .addClass(transform(selectionModel, selection => selection.includes(data) ? 'selected' : null)))
     }
 
@@ -223,10 +219,12 @@ export function treeColumn(name, original) {
 }
 
 export function resizeableColumns(leftColumnContent, rightColumnContent, leftWidth = stateModel('49%')) {
-    let start = state(0)
+    let start = state({start: 0, width: 0})
     return div(
-        div(leftColumnContent).width(leftWidth),
-        div('.').setClass('resizer-x').draggable().onDragstart((b, e) => start.set(e.clientX), true).onDrag((b, e) => {leftWidth.set(b.get().previousSibling.width + e.clientX - start.get())}, true),
+        div(div('Start: ', start.start, ' Width: ', start.width), leftColumnContent).width(leftWidth),
+        div().setClass('resizer-x').draggable(true).onDragstart((b, e) => start.set({start: e.clientX, width: b.get().previousSibling.clientWidth})).onDrag((b, e) => {
+            leftWidth.set((start.get().width + e.clientX - start.get().start) + 'px')
+        }),
         div(rightColumnContent).auto()
     ).flexRow()
 }

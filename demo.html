@@ -11,8 +11,8 @@
         th {background-color: silver;text-transform: capitalize;}
     </style>
     <script type="module">
-        import {body, div, set, state} from "./mvc.js";
-        import {dataTable, linearizeSimpleTreeModel, row, treeColumn} from "./ui.js";
+        import {body, div, set, state, stateModel} from "./mvc.js";
+        import {dataTable, linearizeSimpleTreeModel, resizeableColumns, row, treeColumn} from "./ui.js";
 
         let model = state("A")
         let treeModel = state([
@@ -21,15 +21,23 @@
                 ]}
         ])
 
+        let tableSelection = stateModel([])
+        let slot = stateModel()
+        let w = stateModel('50%')
+
         body(
             div(model).onClick(set(model, "B")),
-            dataTable(state([
-                {firstName: "Ondrej", lastName: "Fischer"},
-                {firstName: "Lukas", lastName: "Jarolim"},
-            ])).column(row.firstName, row.lastName),
-            dataTable(linearizeSimpleTreeModel(treeModel)).column(
-                treeColumn("Node", treeModel)
-            )
+            resizeableColumns(
+                dataTable(state([
+                    {firstName: "Ondrej", lastName: "Fischer"},
+                    {firstName: "Lukas", lastName: "Jarolim"},
+                ])).width('100%').column(row.firstName, row.lastName).withSelection(tableSelection).transferItems(slot),
+                dataTable(linearizeSimpleTreeModel(treeModel)).column(
+                    treeColumn("Node", treeModel)
+                ).width('100%'),
+                w
+            ),
+            div('Width: ', w)
         )
 
     </script>

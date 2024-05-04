@@ -415,8 +415,8 @@ export class HtmlBuilder extends ElementBuilder {
     flex(...args) {return this.css('flex', ...args)}
     auto() {return this.flex("auto")}
     flexDirection(...args) {return this.css('flex-direction', ...args)}
-    flexRow() {return this.flex('row')}
-    flexColumn() {return this.flex('column')}
+    flexRow() {return this.display('flex').flex('row')}
+    flexColumn() {return this.display('flex').flex('column')}
     flexShrink(...args) {return this.css('flex-shrink', ...args)}
     flexGrow(...args) {return this.css('flex-grow', ...args)}
     alignItems(...args) {return this.css('align-items', ...args)}
@@ -1098,7 +1098,7 @@ export function when(condition, command) {
 }
 
 export function ctrlKey(ctrlHandler, defaultHandler) {
-    return (content, event) => event.ctrlKey ? ctrlHandler : defaultHandler
+    return (content, event) => event.ctrlKey ? ctrlHandler(content, event) : defaultHandler(content, event)
 }
 
 /**
