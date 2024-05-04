@@ -223,9 +223,10 @@ export function treeColumn(name, original) {
 }
 
 export function resizeableColumns(leftColumnContent, rightColumnContent, leftWidth = stateModel('49%')) {
+    let start = state(0)
     return div(
         div(leftColumnContent).width(leftWidth),
-        div('.').draggable().onDrop(() => {}),
+        div('.').setClass('resizer-x').draggable().onDragstart((b, e) => start.set(e.clientX), true).onDrop((b, e) => {leftWidth.set(b.get().previousSibling.width + e.clientX - start.get())}, true),
         div(rightColumnContent).auto()
     ).flexRow()
 }
