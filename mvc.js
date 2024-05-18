@@ -270,6 +270,7 @@ export class HtmlBuilder extends ElementBuilder {
     href(...value) {return this.set('href', ...value)}
     type(...value) {return this.set('type', ...value)}
     readonly(...value) {return this.set('readonly', ...value)}
+    placeholder(...value) {return this.set('placeholder', ...value)}
     action(...value) {return this.set('action', ...value)}
     target(...value) {return this.set('target', ...value)}
     method(...value) {return this.set('method', ...value)}
@@ -289,6 +290,7 @@ export class HtmlBuilder extends ElementBuilder {
     min(value) {return this.set('min', value)}
     high(value) {return this.set('high', value)}
     low(value) {return this.set('low', value)}
+    step(...value) {return this.set('step', ...value)}
 
     display(value) {return this.css('display', isObservable(value) ? transform(value, v => v === false ? 'none' : v === true ? null : v) : value)}
     textAlign(value) {return this.css('text-align', value)}
@@ -313,102 +315,30 @@ export class HtmlBuilder extends ElementBuilder {
     backgroundColor(value) {return this.css('background-color', value)}
     backgroundImage(...args) {return this.css('background-image', ...args)}
     backgroundRepeat(...args) {return this.css('background-repeat', ...args)}
-
-    backgroundSize(...args) {
-        return this.backgroundRepeat('no-repeat').css('background-size', ...args)
-    }
-
-    linearGradient(value) {
-        return this.backgroundImage('linear-gradient(', value, ')')
-    }
-
-    position(value) {
-        return this.css('position', value)
-    }
-
-    float(value) {
-        return this.css('float', value)
-    }
-
-    padding(...args) {
-        return this.css('padding', ...args)
-    }
-
-    paddingLeft(...args) {
-        return this.css('padding-left', ...args)
-    }
-
-    paddingRight(...args) {
-        return this.css('padding-right', ...args)
-    }
-
-    paddingTop(...args) {
-        return this.css('padding-top', ...args)
-    }
-
-    paddingBottom(...args) {
-        return this.css('padding-bottom', ...args)
-    }
-
-    margin(...args) {
-        return this.css('margin', ...args)
-    }
-
-    marginLeft(...args) {
-        return this.css('margin-left', ...args)
-    }
-
-    marginRight(...args) {
-        return this.css('margin-right', ...args)
-    }
-
-    marginTop(...args) {
-        return this.css('margin-top', ...args)
-    }
-
-    marginBottom(...args) {
-        return this.css('margin-bottom', ...args)
-    }
-
-    border(...args) {
-        return this.css('border', ...args)
-    }
-
-    borderTop(...args) {
-        return this.css('border-top', ...args)
-    }
-
-    borderBottom(...args) {
-        return this.css('border-bottom', ...args)
-    }
-
-    borderLeft(...args) {
-        return this.css('border-left', ...args)
-    }
-
-    borderRight(...args) {
-        return this.css('border-right', ...args)
-    }
-
-    borderRadius(...args) {
-        return this.css('border-radius', ...args)
-    }
-
-    cursor(value) {
-        return this.css('cursor', value)
-    }
-
-    transition(...value) {
-        return this.css('transition', ...value)
-    }
-
-    transform(...value) {
-        return this.css('transform', ...value)
-    }
-
-    rotate(value, unit) {
-        return this.transform('rotate(', value, unit, ')')
-    }
+    backgroundSize(...args) {return this.backgroundRepeat('no-repeat').css('background-size', ...args)}
+    linearGradient(value) {return this.backgroundImage('linear-gradient(', value, ')')}
+    position(value) {return this.css('position', value)}
+    float(value) {return this.css('float', value)}
+    padding(...args) {return this.css('padding', ...args)}
+    paddingLeft(...args) {return this.css('padding-left', ...args)}
+    paddingRight(...args) {return this.css('padding-right', ...args)}
+    paddingTop(...args) {return this.css('padding-top', ...args)}
+    paddingBottom(...args) {return this.css('padding-bottom', ...args)}
+    margin(...args) {return this.css('margin', ...args)}
+    marginLeft(...args) {return this.css('margin-left', ...args)}
+    marginRight(...args) {return this.css('margin-right', ...args)}
+    marginTop(...args) {return this.css('margin-top', ...args)}
+    marginBottom(...args) {return this.css('margin-bottom', ...args)}
+    border(...args) {return this.css('border', ...args)}
+    borderTop(...args) {return this.css('border-top', ...args)}
+    borderBottom(...args) {return this.css('border-bottom', ...args)}
+    borderLeft(...args) {return this.css('border-left', ...args)}
+    borderRight(...args) {return this.css('border-right', ...args)}
+    borderRadius(...args) {return this.css('border-radius', ...args)}
+    cursor(value) {return this.css('cursor', value)}
+    transition(...value) {return this.css('transition', ...value)}
+    transform(...value) {return this.css('transform', ...value)}
+    rotate(...value) {return this.transform('rotate(', ...value, ')')}
     overflow(...value) {return this.css('overflow', ...value)}
     overflowX(...value) {return this.css('overflow-x', ...value)}
     overflowY(value) {return this.css('overflow-y', value)}
@@ -425,14 +355,9 @@ export class HtmlBuilder extends ElementBuilder {
     whiteSpace(...args) {return this.css('white-space', ...args)}
     nowrap() {return this.whiteSpace('nowrap')}
     boxSizing(value) {return this.css('box-sizing', value)}
-
-    borderBox() {
-        return this.boxSizing('border-box')
-    }
-
+    borderBox() {return this.boxSizing('border-box')}
     value(...args) {return this.setProperty('value', ...args)}
     checked(value) {return this.setProperty('checked', value)}
-
     onClick(handler, bubble) {return this.on('click', handler, bubble)}
     onSubmit(handler, bubble) {return this.on('submit', handler, bubble)}
     onReset(handler, bubble) {return this.on('reset', handler, bubble)}
@@ -494,71 +419,17 @@ export function builder(node, ...content) {
     throw new ReferenceError("Provided value must be instance of Node. Got: " + node);
 }
 
-export function body(...content) {
-    return builder(document.body, ...content)
-}
-
-/**
- * Builder created on top of the existing document head element.
- * @returns {HtmlBuilder}
- */
-export function head(...content) {
-    return builder(document.head, ...content)
-}
-
-/**
- * Builder created on top of the existing element found by id.
- * @returns {HtmlBuilder}
- */
-export function byId(id) {
-    return builder(document.getElementById(id))
-}
-
-/**
- * Create new DOM Element with provided name and wrap it with a builder.
- * @param name Element name.
- * @param content Elements to be appended to the element.
- * @returns {HtmlBuilder} New XBuilder instance.
- */
-export function element(name, ...content) {
-    return builder(document.createElement(name), ...content)
-}
-
-/**
- * Create new DOM Element 'meta' and wrap it with a builder.
- * @returns {HtmlBuilder} New XBuilder instance.
- */
-export function meta() {
-    return element('meta')
-}
-
-/**
- * Create new DOM Element 'base' and wrap it with a builder.
- * @returns {HtmlBuilder} New XBuilder instance.
- */
-export function base() {
-    return element('base')
-}
-
-export function div(...content) {
-    return element('div', ...content)
-}
-
-export function span(...content) {
-    return element('span', ...content)
-}
-
-export function img(...src) {
-    return element('img').src(...src)
-}
-
-export function link(rel) {
-    return element('link').rel(rel)
-}
-
-export function a(...content) {
-    return element('a', ...content)
-}
+export function body(...content) {return builder(document.body, ...content)}
+export function head(...content) {return builder(document.head, ...content)}
+export function byId(id) {return builder(document.getElementById(id))}
+export function element(name, ...content) {return builder(document.createElement(name), ...content)}
+export function meta() {return element('meta')}
+export function base() {return element('base')}
+export function div(...content) {return element('div', ...content)}
+export function span(...content) {return element('span', ...content)}
+export function img(...src) {return element('img').src(...src)}
+export function link(rel) {return element('link').rel(rel)}
+export function a(...content) {return element('a', ...content)}
 
 /**
  * Create new DOM Element 'h1' and wrap it with a builder.
@@ -714,11 +585,16 @@ export function textarea(name) {
 }
 
 export function input(name, type = 'text') {
-    return element('input').type(type).name(name)
+    let i = element('input').type(type)
+    return isObservable(name) ? i.name(name.getName()).edit(name) : i.name(name)
 }
 
 export function inputText(name) {
     return input(name)
+}
+
+export function inputNumber(name) {
+    return input(name, 'number')
 }
 
 export function hidden(name) {
