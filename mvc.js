@@ -399,6 +399,14 @@ export class HtmlBuilder extends ElementBuilder {
         return this.receiving(channel, indication)
     }
 
+    dragTo(item, target) {
+        return this.transfer(channelOf(target), data)
+    }
+
+    dropTo(target) {
+        return this.receive(channelOf(target), item => target.update(a => a.push(item)))
+    }
+    
     /*
      Special binding
      */
