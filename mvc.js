@@ -271,6 +271,7 @@ export class HtmlBuilder extends ElementBuilder {
     type(...value) {return this.set('type', ...value)}
     readonly(...value) {return this.set('readonly', ...value)}
     placeholder(...value) {return this.set('placeholder', ...value)}
+    pattern(...value) {return this.set('pattern', ...values)}
     action(...value) {return this.set('action', ...value)}
     target(...value) {return this.set('target', ...value)}
     method(...value) {return this.set('method', ...value)}
