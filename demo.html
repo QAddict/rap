@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
-    <link rel="stylesheet" type="text/css" href="rap.css" />
+    <link rel="stylesheet" type="text/css" href="src/main/resources/static/css/rap.css" />
     <style>
         table {border: 1px solid silver;box-shadow: 2px 2px 5px;}
         td {border-top: 1px solid grey;}
@@ -11,8 +11,8 @@
         th {background-color: silver;text-transform: capitalize;}
     </style>
     <script type="module">
-        import {body, div, set, state, stateModel} from "./mvc.js";
-        import {dataTable, linearizeSimpleTreeModel, resizeableColumns, row, treeColumn} from "./ui.js";
+        import {body, div, set, state, stateModel} from "./src/main/resources/static/js/mvc.js";
+        import {dataTable, linearizeSimpleTreeModel, resizeableColumns, row, treeColumn} from "./src/main/resources/static/js/ui.js";
 
         let model = state("A")
         let treeModel = state([
@@ -31,7 +31,7 @@
                 dataTable(state([
                     {firstName: "Ondrej", lastName: "Fischer"},
                     {firstName: "Lukas", lastName: "Jarolim"},
-                ])).width('100%').column(row.firstName, row.lastName).withSelection(tableSelection).transferItems(slot),
+                ])).column(row.firstName, row.lastName).width('100%').withSelection(tableSelection).transferItems(slot),
                 dataTable(linearizeSimpleTreeModel(treeModel)).column(
                     treeColumn("Node", treeModel)
                 ).width('100%'),
