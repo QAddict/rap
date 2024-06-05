@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.RestController;
 import java.io.IOException;
 import java.util.Map;
 
+import static java.util.Objects.isNull;
+
 @RestController
 public class QueryController {
 
@@ -32,10 +34,11 @@ public class QueryController {
 
     @GetMapping("/get/{entity}/{id}")
     public EntityModel<?> get(@PathVariable String entity, @PathVariable String id) {
-        return EntityModel.of(entityManager.find(entities.get(entity).getType(), id));
+        Object object = entityManager.find(entities.get(entity).getType(), id);
+        return isNull(object) ? null : EntityModel.of(object);
     }
 
-    @GetMapping("/query/{entity}")
+    @GetMapping("/query/{entity}s")
     public CollectionModel<?> query(
             @PathVariable String entity,
             @RequestParam(defaultValue = "") String from,
