@@ -161,6 +161,20 @@ export function uri(template, model) {
 export function path(template, model) {
     return transform(transform(model, properties(encodeURIComponent)), usingTemplate(template))
 }
+
+function locationEncoded(initialState = {}) {
+    let data = state(initialState)
+    data.set(Object.fromEntries(document.location.search.substring(1).split('&').map(i => i.split('=').map(uriComponentDecode))))
+    let uriState = uri(document.location.pathname, data)
+    let a = true
+    uriState.observeChanges(v => a && window.history.pushState(data.get(), "", v))
+    window.addEventListener('popstate', event => {
+        a = false
+        data.set(event.state)
+        a = true
+    })
+}
+
 //endregion
 
 //region <HTML View>
