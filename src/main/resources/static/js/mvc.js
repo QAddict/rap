@@ -70,6 +70,11 @@ export class PropertyModel extends Model {
     getName() {return this.__name;}
 }
 
+export class DependencyModel extends PropertyModel {
+    constructor(parent, name, deps) {super(parent, name); this._deps = deps}
+    set(value) {this._deps(this.get(), value); return super.set(value)}
+}
+
 export let stateProxyHandler = {
     get(target, name) {return (target[name] === undefined) ? target[name] = state(new PropertyModel(target, name)) : target[name]}
 }
