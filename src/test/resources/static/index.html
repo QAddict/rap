@@ -13,7 +13,9 @@
         body(
             h1('Test app from files'),
             dataTable(get(uri('/query/{from}s', {from: 'book'})).trigger().output._embedded.bookList).column(
-                row.title
+                row.title,
+                row.author.firstName,
+                row.author.lastName
             )
         )
     </script>
