@@ -1,4 +1,5 @@
-import {a, addTo, attach, captionBottom, captionTop, checkbox, ctrlKey, div, each, falseTo, form, HtmlBuilder, inputText, label, node, reset, set, span, state, stateModel, submit, table, tbody, td, th, thead, to, toggle, tr, transform, trigger, when} from "./mvc.js";
+import {addTo, attach, ctrlKey, each, falseTo, node, set, state, stateModel, to, toggle, transform, trigger, when} from "./mvc.js";
+import {a, captionBottom, captionTop, checkbox, div, form, HtmlBuilder, inputText, label, reset, span, submit, table, tbody, td, th, thead, tr} from "./html.js";
 
 export function expander(model, enabled = stateModel(true)) {
     return span()

@@ -46,7 +46,6 @@ public class QueryController {
     @GetMapping("/query/{entity}s")
     public CollectionModel<?> query(
             @PathVariable String entity,
-            @RequestParam(defaultValue = "") String from,
             @RequestParam(defaultValue = "") String where,
             @RequestParam(defaultValue = "") String orderBy,
             @RequestParam(defaultValue = "") String select,
@@ -60,7 +59,7 @@ public class QueryController {
 
         JPAQuery<?> query = select.isBlank() ? queryFactory.select(entityPath) : queryFactory.select(parser.parseSelect(select));
 
-        query.from(from.isBlank() ? entityPath : entities.get(from));
+        query.from(entityPath);
 
         if(!where.isBlank()) query.where(parser.parsePredicate(where));
         if(!orderBy.isBlank()) query.orderBy(parser.parseOrderSpecifier(orderBy));
