@@ -6,18 +6,23 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import foundation.jpa.querydsl.QueryVariables;
 import foundation.jpa.querydsl.QuerydslParser;
 import jakarta.persistence.EntityManager;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
-import org.springframework.hateoas.PagedModel;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 import static java.util.Objects.isNull;
+import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.toMap;
 
 @RestController
 public class QueryController {
@@ -26,9 +31,9 @@ public class QueryController {
     private final Map<String, EntityPath<?>> entities;
     private final JPAQueryFactory queryFactory;
 
-    public QueryController(EntityManager entityManager, Map<String, EntityPath<?>> entities, JPAQueryFactory queryFactory) {
+    public QueryController(EntityManager entityManager, List<EntityPath<?>> entities, JPAQueryFactory queryFactory) {
         this.entityManager = entityManager;
-        this.entities = entities;
+        this.entities = entities.stream().collect(toMap(Object::toString, identity()));
         this.queryFactory = queryFactory;
     }
 
@@ -47,8 +52,8 @@ public class QueryController {
             @RequestParam(defaultValue = "") String select,
             @RequestParam(defaultValue = "") String groupBy,
             @RequestParam(defaultValue = "") String having,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size
+            Pageable pageable,
+            PagedResourcesAssembler<?> pagedResourcesAssembler
     ) throws IOException {
         EntityPath<?> entityPath = entities.get(entity);
         var parser = new QuerydslParser(entityPath, QueryVariables.none());
@@ -61,12 +66,14 @@ public class QueryController {
         if(!orderBy.isBlank()) query.orderBy(parser.parseOrderSpecifier(orderBy));
         if(!groupBy.isBlank()) query.groupBy(parser.parseSelect(groupBy));
         if(!having.isBlank()) query.having(parser.parsePredicate(having));
-        if(page > 0) query.offset((long) page * size);
-        if(size > 0) query.limit(size);
+        if(pageable.getPageNumber() > 0) query.offset((long) pageable.getPageNumber() * pageable.getPageSize());
+        if(pageable.getPageSize() > 0) query.limit(pageable.getPageSize());
 
-        return size > 0
-                ? PagedModel.of(query.fetch(), new PagedModel.PageMetadata(size, page, query.fetchCount()))
-                : CollectionModel.of(query.fetch());
+        return pagedResourcesAssembler.toModel(new PageImpl(query.fetch(), pageable, query.fetchCount()));
+
+        //return size > 0
+        //        ? PagedModel.of(query.fetch(), new PagedModel.PageMetadata(size, page, query.fetchCount()))
+        //        : CollectionModel.of(query.fetch());
 
     }
 

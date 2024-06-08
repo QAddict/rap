@@ -7,11 +7,9 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 
-import java.util.Map;
-import java.util.stream.Stream;
+import java.util.List;
 
-import static java.util.function.Function.identity;
-import static java.util.stream.Collectors.toMap;
+import static org.qaddict.rap.QBook.book;
 
 @SpringBootApplication
 public class TestApp {
@@ -21,8 +19,8 @@ public class TestApp {
     }
 
     @Bean
-    public Map<String, EntityPath<?>> entityPaths() {
-        return Stream.of(QBook.book).collect(toMap(Object::toString, identity()));
+    public List<EntityPath<?>> entityPaths() {
+        return List.of(book);
     }
 
     @Bean
@@ -30,4 +28,11 @@ public class TestApp {
         return new JPAQueryFactory(entityManager);
     }
 
+    @Bean
+    public Iterable<Book> books(BookRepository bookRepository) {
+        return bookRepository.saveAll(List.of(
+                new Book().setTitle("Hahaha"),
+                new Book().setTitle("Krtek")
+        ));
+    }
 }

@@ -3,8 +3,10 @@ package org.qaddict.rap;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
 
 @Entity
+@SuppressWarnings("unused")
 public class Book {
 
     @Id
@@ -13,7 +15,8 @@ public class Book {
 
     private String title;
 
-    private String author;
+    @ManyToOne
+    private Author author;
 
     public Long getId() {
         return id;
@@ -33,11 +36,11 @@ public class Book {
         return this;
     }
 
-    public String getAuthor() {
+    public Author getAuthor() {
         return author;
     }
 
-    public Book setAuthor(String author) {
+    public Book setAuthor(Author author) {
         this.author = author;
         return this;
     }
