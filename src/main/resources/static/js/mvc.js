@@ -162,17 +162,20 @@ export function path(template, model) {
     return transform(transform(model, properties(encodeURIComponent)), usingTemplate(template))
 }
 
-function locationEncoded(initialState = {}) {
+export function locationEncoded(initialState = {}) {
     let data = state(initialState)
-    data.set(Object.fromEntries(document.location.search.substring(1).split('&').map(i => i.split('=').map(uriComponentDecode))))
-    let uriState = uri(document.location.pathname, data)
+    data.set({...data.get(), ...Object.fromEntries(document.location.search.substring(1).split('&').map(i => i.split('=').map(decodeURIComponent)))})
+    //let uriState = uri(document.location.pathname, data)
     let a = true
-    uriState.observeChanges(v => a && window.history.pushState(data.get(), "", v))
+    let f = usingUriTemplate(document.location.pathname)
+    let f2 = properties(encodeURIComponent)
+    data.observeChanges(v => a && window.history.pushState(v, "", f(f2(v))))
     window.addEventListener('popstate', event => {
         a = false
         data.set(event.state)
         a = true
     })
+    return data
 }
 
 //endregion

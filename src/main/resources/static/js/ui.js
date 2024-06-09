@@ -178,8 +178,8 @@ export function pageTable(pageCall, page = pageCall.input.page) {
 }
 
 export function searchControls(query) {
-    return form().onSubmit(event => query.set(event.target.query.value)).onReset(set(query, '')).add(
-        inputText('query').value(query),
+    return form().onSubmit((b, event) => query.set(b.get()[query.getName()].value)).onReset(set(query, '')).add(
+        inputText(query.getName()).value(query),
         submit('Search'),
         reset('Clear')
     )
