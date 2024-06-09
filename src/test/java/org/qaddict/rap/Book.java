@@ -1,9 +1,6 @@
 package org.qaddict.rap;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.*;
 
 @Entity
 @SuppressWarnings("unused")
@@ -15,7 +12,7 @@ public class Book {
 
     private String title;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
     private Author author;
 
     public Long getId() {

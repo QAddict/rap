@@ -31,8 +31,8 @@ public class TestApp {
     @Bean
     public Iterable<Book> books(BookRepository bookRepository) {
         return bookRepository.saveAll(List.of(
-                new Book().setTitle("Hahaha"),
-                new Book().setTitle("Krtek")
+                new Book().setTitle("Hahaha").setAuthor(new Author().setFirstName("Mark").setLastName("Twain")),
+                new Book().setTitle("Krtek").setAuthor(new Author().setFirstName("Zdenek").setLastName("Miller"))
         ));
     }
 }
