@@ -14,3 +14,21 @@
 .selected {
   background-color: aquamarine;
 }
+
+body {
+  font-family: arial, serif;
+  font-size: 9pt;
+}
+
+th, td {
+  text-align: left;
+}
+
+th {
+  color: white;
+  background-color: grey;
+}
+
+tr:nth-child(even) {
+  background-color: #dddddd;
+}
