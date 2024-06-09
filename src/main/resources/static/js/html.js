@@ -1,4 +1,4 @@
-import {ElementBuilder, isObservable, join, transform, set} from "./mvc.js";
+import {ElementBuilder, isObservable, join, transform, set, stateModel, to} from "./mvc.js";
 
 //region <HTML builder>
 
@@ -135,7 +135,7 @@ export class HtmlBuilder extends ElementBuilder {
     }
 
     receivingClasses(channel, dragStartClass, dragOverClass) {
-        let indication = state(false)
+        let indication = stateModel(false)
         if (dragStartClass) this.addClass(transform(channel, to(dragStartClass)))
         if (dragOverClass) this.addClass(transform(indication, to(" " + dragOverClass)))
         return this.receiving(channel, indication)

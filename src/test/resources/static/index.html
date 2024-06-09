@@ -10,17 +10,17 @@
         import {uri, locationEncoded} from "/js/mvc.js";
         import {get} from "/js/io.js";
 
-        let input = locationEncoded({from: 'book'})
+        let input = locationEncoded()
 
         body(
             h1('Test app from files'),
-            dataTable(get(uri('/query/{from}s', input)).triggerOn(input).output._embedded.bookList).enableColumnFiltering().add(
-                captionTop().setClass('rap-search').textLeft().nowrap().add(searchControls(input.where)),
+            dataTable(get(uri('/query/books', input)).triggerOn(input).output._embedded.bookList).add(
+                captionTop(searchControls(input.where)),
             ).column(
                 row.title,
                 row.author.firstName,
                 row.author.lastName
-            )
+            ).enableColumnFiltering().enableColumnMove()
         )
     </script>
 </head>

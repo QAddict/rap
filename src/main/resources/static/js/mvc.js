@@ -163,8 +163,8 @@ export function path(template, model) {
 }
 
 export function locationEncoded(initialState = {}) {
-    let data = state(initialState)
-    data.set({...data.get(), ...Object.fromEntries(document.location.search.substring(1).split('&').map(i => i.split('=').map(decodeURIComponent)))})
+    let data = state()
+    data.set({...Object.fromEntries(document.location.search.substring(1).split('&').map(i => i.split('=').map(decodeURIComponent)))})
     //let uriState = uri(document.location.pathname, data)
     let a = true
     let f = usingUriTemplate(document.location.pathname)
