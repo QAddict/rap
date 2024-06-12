@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import static java.util.Objects.isNull;
 import static java.util.function.Function.identity;
@@ -86,6 +87,9 @@ public class QueryController {
                 model.add(linkTo(methodOn(QueryController.class).query(entity, where, orderBy, select, groupBy, having, page + 1, size)).withRel("next"));
                 model.add(linkTo(methodOn(QueryController.class).query(entity, where, orderBy, select, groupBy, having, lastPage, size)).withRel("last"));
             }
+
+            for(Long s : List.of(20L, 25L, 30L, 40L, 50L))
+                model.add(linkTo(methodOn(QueryController.class).query(entity, where, orderBy, select, groupBy, having, 0L, s)).withRel("size" + s));
 
         } else {
             model = CollectionModel.of(query.fetch());

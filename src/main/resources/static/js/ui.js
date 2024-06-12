@@ -88,15 +88,18 @@ export class DataTable extends HtmlBuilder {
                 return cell.add(column.renderCell(item, cell, index, this))
             })))),
             render(detectPaging(dataModel), page => captionBottom(
-                form().onSubmit(event => dataModel.uri.set(parseInt(event.target.page.value) - 1)).add(
+                div(form().onSubmit(event => dataModel.uri.set(parseInt(event.target.page.value) - 1)).add(
                     nav(dataModel, 'first').add('\u226A'),
                     nav(dataModel, 'prev').add('<'),
-                    span().setClass('paging current-page').add('Page: ', input('page').width(2, 'em').value(page.number), ' of ', page.totalPages, ' (rows ', (page.number * page.size), ' - ', (page.number * page.size), ' of ', page.totalElements, ')'),
+                    'Page: ', input('page').width(2, 'em').value(page.number), ' of ', page.totalPages, ' (rows ', (page.number * page.size), ' - ', (page.number * page.size), ' of ', page.totalElements, ')',
                     nav(dataModel, 'next').add('>'),
                     nav(dataModel, 'last').add('\u226B'),
                     //a().setClass('paging reload-page', transform(loading, to(' data-loading'))).add('\u21BB').title('Reload page').onClick(trigger(page))
-            )).flexRow())
-        )
+                ).auto(), form(
+                    ...Object.entries(dataModel.get()._links).filter(([key]) => key.startsWith('size')).map(([key]) => nav(dataModel, key).add(key.substring(4))),
+                )).flexRow()
+            ).textLeft())
+        ).width('100%')
     }
 
     repaint() {
