@@ -9,6 +9,7 @@ import jakarta.persistence.EntityManager;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -46,15 +47,16 @@ public class QueryController {
     }
 
     @GetMapping("/query/{entity}s")
-    public PagedModel<?> query(
+    public CollectionModel<?> query(
             @PathVariable String entity,
             @RequestParam(defaultValue = "") String where,
             @RequestParam(defaultValue = "") String orderBy,
             @RequestParam(defaultValue = "") String select,
             @RequestParam(defaultValue = "") String groupBy,
             @RequestParam(defaultValue = "") String having,
-            Pageable pageable, PagedResourcesAssembler<?> pagedResourcesAssembler
-            ) throws IOException {
+            @RequestParam(defaultValue = "0") Long page,
+            @RequestParam(defaultValue = "25") Long size
+    ) throws IOException {
         EntityPath<?> entityPath = entities.get(entity);
         var parser = new QuerydslParser(entityPath, QueryVariables.none());
 
@@ -66,13 +68,33 @@ public class QueryController {
         if(!orderBy.isBlank()) query.orderBy(parser.parseOrderSpecifier(orderBy));
         if(!groupBy.isBlank()) query.groupBy(parser.parseSelect(groupBy));
         if(!having.isBlank()) query.having(parser.parsePredicate(having));
-        if(pageable.getPageNumber() > 0) query.offset((long) pageable.getPageNumber() * pageable.getPageSize());
-        if(pageable.getPageSize() > 0) query.limit(pageable.getPageSize());
+        if(page > 0) query.offset(page * size);
+        if(size > 0) query.limit(size);
 
-        PagedModel model = pagedResourcesAssembler.toModel(new PageImpl(query.fetch(), pageable, query.fetchCount()));
-        model.add(linkTo(methodOn(QueryController.class).query(entity, null, orderBy, select, groupBy, having, pageable, pagedResourcesAssembler)).withRel("search"));
+        CollectionModel<?> model;
+
+        if(size > 0) {
+            PagedModel.PageMetadata pageMetadata = new PagedModel.PageMetadata(size, page, query.fetchCount());
+            model = PagedModel.of(query.fetch(), pageMetadata);
+            long lastPage = pageMetadata.getTotalPages() - 1;
+            model.add(linkTo(methodOn(QueryController.class).query(entity, where, orderBy, select, groupBy, having, null, size)).withRel("setPage"));
+            if(page > 0) {
+                model.add(linkTo(methodOn(QueryController.class).query(entity, where, orderBy, select, groupBy, having, 0L, size)).withRel("firstPage"));
+                model.add(linkTo(methodOn(QueryController.class).query(entity, where, orderBy, select, groupBy, having, page - 1, size)).withRel("previousPage"));
+            }
+            if(page < lastPage) {
+                model.add(linkTo(methodOn(QueryController.class).query(entity, where, orderBy, select, groupBy, having, page + 1, size)).withRel("nextPage"));
+                model.add(linkTo(methodOn(QueryController.class).query(entity, where, orderBy, select, groupBy, having, lastPage, size)).withRel("lastPage"));
+            }
+
+        } else {
+            model = CollectionModel.of(query.fetch());
+        }
+
+        model.add(linkTo(methodOn(QueryController.class).query(entity, null, orderBy, select, groupBy, having, page, size)).withRel("search"));
+
+
         return model;
-
     }
 
 }
