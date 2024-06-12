@@ -6,7 +6,7 @@
 
     body(
         h1('Test app from files'),
-        dataTable('/query/books')
+        dataTable('/query/books?size=1')
             .column(row.title, row.author.firstName, row.author.lastName)
             .enableColumnFiltering()
             .enableColumnMove()

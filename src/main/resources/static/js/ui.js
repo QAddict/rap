@@ -1,5 +1,5 @@
 import {addTo, attach, ctrlKey, each, falseTo, isObservable, node, render, set, state, stateModel, to, toggle, transform, trigger, uri, when} from "./mvc.js";
-import {a, captionBottom, captionTop, checkbox, div, form, HtmlBuilder, inputText, label, reset, span, submit, table, tbody, td, th, thead, tr} from "./html.js";
+import {a, captionBottom, captionTop, checkbox, div, form, HtmlBuilder, input, inputText, label, reset, span, submit, table, tbody, td, th, thead, tr} from "./html.js";
 import {get} from "./io.js"
 
 export function expander(model, enabled = stateModel(true)) {
@@ -64,8 +64,10 @@ export class DataTable extends HtmlBuilder {
 
     constructor(dataModel, t = table()) {
         super(node(t));
-        if(!isObservable(dataModel))
-            dataModel = get(uri(dataModel, {}))
+        if(!isObservable(dataModel)) {
+            dataModel = get(dataModel)
+            dataModel.triggerOn(dataModel.uri)
+        }
         let columnMove = stateModel()
         this.rowCustomizers = []
         this.columnsModel = state([])
@@ -86,14 +88,14 @@ export class DataTable extends HtmlBuilder {
                 return cell.add(column.renderCell(item, cell, index, this))
             })))),
             render(detectPaging(dataModel), page => captionBottom(
-                form().onSubmit(event => page.set(parseInt(event.target.page.value) - 1)).add(
-                    pageNav('first', set(page, 0)).add('\u226A'),
-                    pageNav('previous', set(page, page.number - 1)).add('<'),
-                    //span().setClass('paging current-page').add('Page: ', input('page').width(2, 'em').value(transform(result, v => v.numberOfElements > 0 ? v.number + 1 : 0)), ' of ', result.totalPages, ' (rows ', result.pageable.offset.map(v => v + 1), ' - ', functionModel((a, b) => a + b, result.pageable.offset, result.numberOfElements), ' of ', result.totalElements, ')'),
-                    pageNav('next', set(page, page.number + 1)).add('>'),
-                    pageNav('last', set(page, page.totalPages - 1)).add('\u226B'),
+                form().onSubmit(event => dataModel.uri.set(parseInt(event.target.page.value) - 1)).add(
+                    nav(dataModel, 'first').add('\u226A'),
+                    nav(dataModel, 'prev').add('<'),
+                    span().setClass('paging current-page').add('Page: ', input('page').width(2, 'em').value(page.number), ' of ', page.totalPages, ' (rows ', (page.number * page.size), ' - ', (page.number * page.size), ' of ', page.totalElements, ')'),
+                    nav(dataModel, 'next').add('>'),
+                    nav(dataModel, 'last').add('\u226B'),
                     //a().setClass('paging reload-page', transform(loading, to(' data-loading'))).add('\u21BB').title('Reload page').onClick(trigger(page))
-            )))
+            )).flexRow())
         )
     }
 
@@ -156,11 +158,20 @@ export function dataTable(result) {
     return new DataTable(result)
 }
 
-function pageNav(which, action, boundaryModel) {
+function pageNav(which, action) {
     return a().setClass('rap-paging ' + which + '-page')
         .title('Go to ' + which + ' page')
         //.color(transform(boundaryModel, to('silver')))
         .onClick(action)
+}
+
+function nav(channel, link) {
+    let l = a().setClass('rap-paging ', link + '-page').title('Go to ' + link + ' page')
+    if(channel.output.get()._links?.[link])
+        l.onClick(set(channel.uri, channel.output.get()._links?.[link]?.href))
+    else
+        l.color('silver')
+    return l
 }
 
 export function pageControls(page, result, loading) {

@@ -77,14 +77,14 @@ public class QueryController {
             PagedModel.PageMetadata pageMetadata = new PagedModel.PageMetadata(size, page, query.fetchCount());
             model = PagedModel.of(query.fetch(), pageMetadata);
             long lastPage = pageMetadata.getTotalPages() - 1;
-            model.add(linkTo(methodOn(QueryController.class).query(entity, where, orderBy, select, groupBy, having, null, size)).withRel("setPage"));
+            model.add(linkTo(methodOn(QueryController.class).query(entity, where, orderBy, select, groupBy, having, null, size)).withRel("page"));
             if(page > 0) {
-                model.add(linkTo(methodOn(QueryController.class).query(entity, where, orderBy, select, groupBy, having, 0L, size)).withRel("firstPage"));
-                model.add(linkTo(methodOn(QueryController.class).query(entity, where, orderBy, select, groupBy, having, page - 1, size)).withRel("previousPage"));
+                model.add(linkTo(methodOn(QueryController.class).query(entity, where, orderBy, select, groupBy, having, 0L, size)).withRel("first"));
+                model.add(linkTo(methodOn(QueryController.class).query(entity, where, orderBy, select, groupBy, having, page - 1, size)).withRel("prev"));
             }
             if(page < lastPage) {
-                model.add(linkTo(methodOn(QueryController.class).query(entity, where, orderBy, select, groupBy, having, page + 1, size)).withRel("nextPage"));
-                model.add(linkTo(methodOn(QueryController.class).query(entity, where, orderBy, select, groupBy, having, lastPage, size)).withRel("lastPage"));
+                model.add(linkTo(methodOn(QueryController.class).query(entity, where, orderBy, select, groupBy, having, page + 1, size)).withRel("next"));
+                model.add(linkTo(methodOn(QueryController.class).query(entity, where, orderBy, select, groupBy, having, lastPage, size)).withRel("last"));
             }
 
         } else {
