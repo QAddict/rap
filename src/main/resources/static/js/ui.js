@@ -1,20 +1,4 @@
-import {
-    addTo,
-    attach,
-    ctrlKey,
-    each,
-    falseTo,
-    node,
-    render,
-    set,
-    state,
-    stateModel,
-    to,
-    toggle,
-    transform,
-    trigger,
-    when
-} from "./mvc.js";
+import {addTo, attach, ctrlKey, each, falseTo, node, render, set, state, stateModel, to, toggle, transform, trigger, when} from "./mvc.js";
 import {a, captionBottom, captionTop, checkbox, div, form, HtmlBuilder, inputText, label, reset, span, submit, table, tbody, td, th, thead, tr} from "./html.js";
 
 export function expander(model, enabled = stateModel(true)) {
@@ -156,16 +140,6 @@ export class DataTable extends HtmlBuilder {
         let f = this.columnsModel.get().splice(from, 1)
         this.columnsModel.get().splice(to, 0, ...f)
         return this.repaint()
-    }
-
-    captionTop(...args) {
-        this.add(captionTop(...args).textLeft().nowrap())
-        return this
-    }
-
-    captionBottom(...args) {
-        this.add(captionBottom(...args).textLeft().nowrap().add())
-        return this
     }
 
 }
