@@ -6,8 +6,9 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import foundation.jpa.querydsl.QueryVariables;
 import foundation.jpa.querydsl.QuerydslParser;
 import jakarta.persistence.EntityManager;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.hateoas.CollectionModel;
+import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -43,15 +44,15 @@ public class QueryController {
     }
 
     @GetMapping("/query/{entity}s")
-    public CollectionModel<?> query(
+    public PagedModel<?> query(
             @PathVariable String entity,
             @RequestParam(defaultValue = "") String where,
             @RequestParam(defaultValue = "") String orderBy,
             @RequestParam(defaultValue = "") String select,
             @RequestParam(defaultValue = "") String groupBy,
             @RequestParam(defaultValue = "") String having,
-            Pageable pageable
-    ) throws IOException {
+            Pageable pageable, PagedResourcesAssembler<?> pagedResourcesAssembler
+            ) throws IOException {
         EntityPath<?> entityPath = entities.get(entity);
         var parser = new QuerydslParser(entityPath, QueryVariables.none());
 
@@ -66,9 +67,7 @@ public class QueryController {
         if(pageable.getPageNumber() > 0) query.offset((long) pageable.getPageNumber() * pageable.getPageSize());
         if(pageable.getPageSize() > 0) query.limit(pageable.getPageSize());
 
-        return pageable.getPageSize() > 0
-                ? PagedModel.of(query.fetch(), new PagedModel.PageMetadata(pageable.getPageSize(), pageable.getPageNumber(), query.fetchCount()))
-                : CollectionModel.of(query.fetch());
+        return pagedResourcesAssembler.toModel(new PageImpl(query.fetch(), pageable, query.fetchCount()));
 
     }
 

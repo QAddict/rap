@@ -162,7 +162,7 @@ export function path(template, model) {
     return transform(transform(model, properties(encodeURIComponent)), usingTemplate(template))
 }
 
-export function locationEncoded(initialState = {}) {
+export function locationEncoded() {
     let data = state()
     data.set({...Object.fromEntries(document.location.search.substring(1).split('&').map(i => i.split('=').map(decodeURIComponent)))})
     //let uriState = uri(document.location.pathname, data)
@@ -334,10 +334,13 @@ export function range(start, model, itemDisplayFunction = item => item, end = te
  *        this element. If not provided, artificial empty text node is created for that purpose.
  * @returns {Content} Fragment builder.
  */
-export function each(model, itemDisplayFunction = (item, index) => item, end = text()) {
+export function each(model, itemDisplayFunction = item => item, end = text()) {
     return range(text(), model, itemDisplayFunction, end)
 }
 
+export function render(model, itemDisplayFunction = item => item) {
+    return each(transform(model, v => v ? [v] : null), itemDisplayFunction)
+}
 
 export function produce(model, itemDisplayFunction = item => item, end = text()) {
     let f = dynamicFragment(text(), end)

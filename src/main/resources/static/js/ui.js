@@ -1,4 +1,20 @@
-import {addTo, attach, ctrlKey, each, falseTo, node, set, state, stateModel, to, toggle, transform, trigger, when} from "./mvc.js";
+import {
+    addTo,
+    attach,
+    ctrlKey,
+    each,
+    falseTo,
+    node,
+    render,
+    set,
+    state,
+    stateModel,
+    to,
+    toggle,
+    transform,
+    trigger,
+    when
+} from "./mvc.js";
 import {a, captionBottom, captionTop, checkbox, div, form, HtmlBuilder, inputText, label, reset, span, submit, table, tbody, td, th, thead, tr} from "./html.js";
 
 export function expander(model, enabled = stateModel(true)) {
@@ -13,41 +29,20 @@ export function expander(model, enabled = stateModel(true)) {
 }
 
 export class Column {
-    constructor(name, hidden = false) {this.__name = name;this.__hidden = hidden}
+    constructor(name, renderCell) {this.__name = name; this.__hidden = false; if(renderCell) this.renderCell = renderCell; }
     getName() {return this.__name}
+    getValue(data) {return data?.[this.getName()]}
     renderHeader(th, columnPosition, table) {return this.getName()}
-    renderCell(data, td, rowIndex, table) {return data?.[this.getName()]}
+    renderCell(data, td, rowIndex, table) {return this.getValue(data)}
     hidden() {return this.__hidden}
     hide(value = true) {this.__hidden = value; return this}
     show(value = true) {return this.hide(!value)}
 }
 
-export class BasicColumn extends Column {
-    constructor(name, get = data => data?.[name]) {super(name); this.__get = get}
-    renderCell(data, td, index, table) {return this.__get(data);}
-}
-
-export function basicColumn(name, get = data => data?.[name]) {
-    return new BasicColumn(name, get)
-}
-
-export class DataTransformingColumn extends Column {
-    constructor(name, dataTransformingFunction) {super(name); this.renderCell = dataTransformingFunction}
-}
-
-export function transformingColumn(delegate, transformingFunction, isTreeColumn = false) {
-    return new DataTransformingColumn(delegate, transformingFunction, isTreeColumn)
-}
-
-export class PositionColumn extends Column {
-    constructor() {super("#");}
-    renderCell(data, td, index) {return index}
-}
-
-export let position = new PositionColumn()
+export let position = new Column('#', (data, td, index) => index)
 
 export function objectPath(name = '', get = o => o) {
-    let c = new BasicColumn(name, get)
+    let c = new Column(name, get)
     return new Proxy(c, {
         get(target, property) {
             return c[property] !== undefined ? c[property] : objectPath(property, o => get(o)?.[property])
@@ -56,6 +51,25 @@ export function objectPath(name = '', get = o => o) {
 }
 
 export let row = objectPath()
+
+function detectSource(model) {
+    return transform(model, value => value == null ? []
+        : Array.isArray(value) ? value
+            : Array.isArray(value.content) ? value.content
+                : embeddedSource(value._embedded))
+}
+
+function embeddedSource(data) {
+    let listEntries = Object.entries(data).filter(([key]) => key.endsWith('List'))
+    if(listEntries.length === 1) return listEntries[0][1]
+    return []
+}
+
+function detectPaging(model) {
+    return transform(model, data => data?.page ? {
+        ...data.page
+    } : null)
+}
 
 export class DataTable extends HtmlBuilder {
 
@@ -75,10 +89,19 @@ export class DataTable extends HtmlBuilder {
                     .receive(columnMove, from => this.moveColumn(from, index), 'rap-table-header-receiver', 'rap-table-header-drop')
                 return header.add(column.renderHeader(header, index, this))
             }))),
-            tbody(each(dataModel, (item, index) => tr().apply((tr, data) => this.rowCustomizers.forEach(c => c(tr, data)), item).add(each(this.visibleColumnsModel, column => {
+            tbody(each(detectSource(dataModel), (item, index) => tr().apply((tr, data) => this.rowCustomizers.forEach(c => c(tr, data)), item).add(each(this.visibleColumnsModel, column => {
                 let cell = td()
                 return cell.add(column.renderCell(item, cell, index, this))
-            }))))
+            })))),
+            render(detectPaging(dataModel), page => captionBottom(
+                form().onSubmit(event => page.set(parseInt(event.target.page.value) - 1)).add(
+                    pageNav('first', set(page, 0)).add('\u226A'),
+                    pageNav('previous', set(page, page.number - 1)).add('<'),
+                    //span().setClass('paging current-page').add('Page: ', input('page').width(2, 'em').value(transform(result, v => v.numberOfElements > 0 ? v.number + 1 : 0)), ' of ', result.totalPages, ' (rows ', result.pageable.offset.map(v => v + 1), ' - ', functionModel((a, b) => a + b, result.pageable.offset, result.numberOfElements), ' of ', result.totalElements, ')'),
+                    pageNav('next', set(page, page.number + 1)).add('>'),
+                    pageNav('last', set(page, page.totalPages - 1)).add('\u226B'),
+                    //a().setClass('paging reload-page', transform(loading, to(' data-loading'))).add('\u21BB').title('Reload page').onClick(trigger(page))
+            )))
         )
     }
 
@@ -154,8 +177,8 @@ export function dataTable(result) {
 function pageNav(which, action, boundaryModel) {
     return a().setClass('rap-paging ' + which + '-page')
         .title('Go to ' + which + ' page')
-        .color(transform(boundaryModel, to('silver')))
-        .onClick(when(transform(boundaryModel, negate), action))
+        //.color(transform(boundaryModel, to('silver')))
+        .onClick(action)
 }
 
 export function pageControls(page, result, loading) {

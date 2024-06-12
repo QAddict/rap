@@ -14,7 +14,7 @@
 
         body(
             h1('Test app from files'),
-            dataTable(get(uri('/query/books', input)).triggerOn(input).output._embedded.bookList).add(
+            dataTable(get(uri('/query/books', input)).triggerOn(input)).add(
                 captionTop(searchControls(input.where)),
             ).column(
                 row.title,
