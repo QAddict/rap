@@ -1,27 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-    <link rel="stylesheet" type="text/css" href="/css/rap.css">
-    <script type="module">
-        import {body, h1, captionTop} from "/js/html.js";
-        import {dataTable, row, searchControls} from "/js/ui.js";
-        import {uri, locationEncoded} from "/js/mvc.js";
-        import {get} from "/js/io.js";
+<head><meta charset="UTF-8"><title>Title</title><link rel="stylesheet" type="text/css" href="/css/rap.css"><script type="module">
+    import {body, h1} from "/js/html.js";
+    import {dataTable, row} from "/js/ui.js";
 
-        let input = locationEncoded()
+    body(
+        h1('Test app from files'),
+        dataTable('/query/books')
+            .column(row.title, row.author.firstName, row.author.lastName)
+            .enableColumnFiltering()
+            .enableColumnMove()
+    )
 
-        body(
-            h1('Test app from files'),
-            dataTable(get(uri('/query/books', input)).triggerOn(input)).add(
-                captionTop(searchControls(input.where)),
-            ).column(
-                row.title,
-                row.author.firstName,
-                row.author.lastName
-            ).enableColumnFiltering().enableColumnMove()
-        )
-    </script>
-</head>
+</script></head>
 </html>

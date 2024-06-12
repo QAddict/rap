@@ -1,5 +1,6 @@
-import {addTo, attach, ctrlKey, each, falseTo, node, render, set, state, stateModel, to, toggle, transform, trigger, when} from "./mvc.js";
+import {addTo, attach, ctrlKey, each, falseTo, isObservable, node, render, set, state, stateModel, to, toggle, transform, trigger, uri, when} from "./mvc.js";
 import {a, captionBottom, captionTop, checkbox, div, form, HtmlBuilder, inputText, label, reset, span, submit, table, tbody, td, th, thead, tr} from "./html.js";
+import {get} from "./io.js"
 
 export function expander(model, enabled = stateModel(true)) {
     return span()
@@ -55,10 +56,16 @@ function detectPaging(model) {
     } : null)
 }
 
+function detectSearch(model) {
+    return transform(model, data => data?._links?.search)
+}
+
 export class DataTable extends HtmlBuilder {
 
     constructor(dataModel, t = table()) {
         super(node(t));
+        if(!isObservable(dataModel))
+            dataModel = get(uri(dataModel, {}))
         let columnMove = stateModel()
         this.rowCustomizers = []
         this.columnsModel = state([])
@@ -66,6 +73,7 @@ export class DataTable extends HtmlBuilder {
         this.moveEnabled = false
         this.visibleColumnsModel = transform(this.columnsModel, cols => cols.filter(col => !col.hidden()))
         this.add(
+            render(detectSearch(dataModel), href => captionTop(searchControls(dataModel.uri, href))),
             thead(tr(each(this.visibleColumnsModel, (column, index) => {
                 let header = th()
                 if(this.moveEnabled) header

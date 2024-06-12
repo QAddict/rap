@@ -23,6 +23,8 @@ import java.util.Map;
 import static java.util.Objects.isNull;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @RestController
 public class QueryController {
@@ -67,7 +69,9 @@ public class QueryController {
         if(pageable.getPageNumber() > 0) query.offset((long) pageable.getPageNumber() * pageable.getPageSize());
         if(pageable.getPageSize() > 0) query.limit(pageable.getPageSize());
 
-        return pagedResourcesAssembler.toModel(new PageImpl(query.fetch(), pageable, query.fetchCount()));
+        PagedModel model = pagedResourcesAssembler.toModel(new PageImpl(query.fetch(), pageable, query.fetchCount()));
+        model.add(linkTo(methodOn(QueryController.class).query(entity, null, orderBy, select, groupBy, having, pageable, pagedResourcesAssembler)).withRel("search"));
+        return model;
 
     }
 
