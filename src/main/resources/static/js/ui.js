@@ -1,4 +1,4 @@
-import {addTo, attach, ctrlKey, each, falseTo, isObservable, node, render, set, state, stateModel, to, toggle, transform, trigger, uri, when} from "./mvc.js";
+import {addTo, attach, ctrlKey, each, falseTo, isObservable, node, render, restParameter, set, state, stateModel, to, toggle, transform, trigger, when} from "./mvc.js";
 import {a, captionBottom, captionTop, checkbox, div, form, HtmlBuilder, input, inputText, label, reset, span, submit, table, tbody, td, th, thead, tr} from "./html.js";
 import {get} from "./io.js"
 
@@ -41,7 +41,8 @@ function detectSource(model) {
     return transform(model, value => value == null ? []
         : Array.isArray(value) ? value
             : Array.isArray(value.content) ? value.content
-                : embeddedSource(value._embedded))
+                : value._embedded == null ? []
+                    : embeddedSource(value._embedded))
 }
 
 function embeddedSource(data) {
@@ -75,9 +76,9 @@ export class DataTable extends HtmlBuilder {
         this.moveEnabled = false
         this.visibleColumnsModel = transform(this.columnsModel, cols => cols.filter(col => !col.hidden()))
         this.add(
-            render(detectSearch(dataModel), href => captionTop(searchControls(dataModel.uri, href))),
+            render(detectSearch(dataModel), link => captionTop(searchControls(restParameter(link.href, dataModel.uri)))),
             thead(tr(each(this.visibleColumnsModel, (column, index) => {
-                let header = th()
+                let header = th().resizeHorizontal().overflowHidden()
                 if(this.moveEnabled) header
                     .transfer(columnMove, index)
                     .receive(columnMove, from => this.moveColumn(from, index), 'rap-table-header-receiver', 'rap-table-header-drop')
@@ -91,7 +92,7 @@ export class DataTable extends HtmlBuilder {
                 div(form().onSubmit(event => dataModel.uri.set(parseInt(event.target.page.value) - 1)).add(
                     nav(dataModel, 'first').add('\u226A'),
                     nav(dataModel, 'prev').add('<'),
-                    'Page: ', input('page').width(2, 'em').value(page.number), ' of ', page.totalPages, ' (rows ', (page.number * page.size), ' - ', (page.number * page.size), ' of ', page.totalElements, ')',
+                    span('Page: ', input('page').width(2, 'em').value(page.number), ' of ', page.totalPages, ' (rows ', (page.number * page.size), ' - ', (page.number * page.size), ' of ', page.totalElements, ')').setClass('rap-paging'),
                     nav(dataModel, 'next').add('>'),
                     nav(dataModel, 'last').add('\u226B'),
                     //a().setClass('paging reload-page', transform(loading, to(' data-loading'))).add('\u21BB').title('Reload page').onClick(trigger(page))
@@ -102,15 +103,9 @@ export class DataTable extends HtmlBuilder {
         ).width('100%')
     }
 
-    repaint() {
-        this.columnsModel.trigger()
-        return this
-    }
+    repaint() {this.columnsModel.trigger(); return this}
 
-    enableColumnMove() {
-        this.moveEnabled = true
-        return this.repaint()
-    }
+    enableColumnMove() {this.moveEnabled = true; return this.repaint()}
 
     enableColumnFiltering() {
         let vis = state(false)
@@ -120,8 +115,8 @@ export class DataTable extends HtmlBuilder {
                     a('⋮').setClass('rap-columns-toggle').onClick(toggle(vis)),
                     div().setClass('rap-columns-visibility').display(vis).position('absolute').textLeft().whiteSpace('nowrap').right(0).add(
                         each(this.columnsModel, column => div().add(
-                            checkbox(column.getName()).checked(column.hidden() ? null : 'checked').onChange(() => {column.hide(!column.hidden()); this.columnsModel.trigger()}, true),
-                            label(column.getName())
+                            checkbox(column.getName()).checked(column.hidden() ? null : 'checked').id(column.getName()).onChange(() => {column.hide(!column.hidden()); this.columnsModel.trigger()}, true),
+                            label(column.getName()).set('for', column.getName())
                         ))
                     )
                 )
@@ -132,7 +127,7 @@ export class DataTable extends HtmlBuilder {
 
     withSelection(selectionModel, selectedClass = 'selected') {
         return this.customizeRow((tr, data) => tr.onClick(ctrlKey(addTo(selectionModel, data), set(selectionModel, [data])))
-            .addClass(transform(selectionModel, selection => selection.includes(data) ? 'selected' : null)))
+            .addClass(transform(selectionModel, selection => selection.includes(data) ? selectedClass : null)))
     }
 
     transferItems(slot) {
@@ -161,13 +156,6 @@ export function dataTable(result) {
     return new DataTable(result)
 }
 
-function pageNav(which, action) {
-    return a().setClass('rap-paging ' + which + '-page')
-        .title('Go to ' + which + ' page')
-        //.color(transform(boundaryModel, to('silver')))
-        .onClick(action)
-}
-
 function nav(channel, link) {
     let l = a().setClass('rap-paging ', link + '-page').title('Go to ' + link + ' page')
     if(channel.output.get()._links?.[link])
@@ -177,42 +165,15 @@ function nav(channel, link) {
     return l
 }
 
-export function pageControls(page, result, loading) {
-    return form().onSubmit(event => page.set(parseInt(event.target.page.value) - 1)).add(
-        pageNav('first', set(page, 0), result.first).add('\u226A'),
-        pageNav('previous', set(page, transform(result.number, v => v - 1)), result.first).add('<'),
-        span().setClass('paging current-page').add('Page: ', input('page').width(2, 'em').value(transform(result, v => v.numberOfElements > 0 ? v.number + 1 : 0)), ' of ', result.totalPages, ' (rows ', result.pageable.offset.map(v => v + 1), ' - ', functionModel((a, b) => a + b, result.pageable.offset, result.numberOfElements), ' of ', result.totalElements, ')'),
-        pageNav('next', set(page, transform(result.number, v => v + 1)), result.last).add('>'),
-        pageNav('last', set(page, transform(result.totalPages, v => v - 1)), result.last).add('\u226B'),
-        a().setClass('paging reload-page', transform(loading, to(' data-loading'))).add('\u21BB').title('Reload page').onClick(trigger(page)),
-        //span().setClass('paging load-timer').add(transform(loading, to(' loading ', ' loaded in ')), timer(loading), ' ms.')
-    )
-}
-
-export function pageTable(pageCall, page = pageCall.input.page) {
-    pageCall = state(pageCall)
-    return dataTable(pageCall.map(v => v.content), pageCall.pageable.offset)
-        .captionTop(pageCall.error)
-        .captionBottom(pageControls(page, pageCall, pageCall.loading))
-}
 
 export function searchControls(query) {
-    return form().flexRow().onSubmit((b, event) => query.set(b.get()[query.getName()].value)).onReset(set(query, '')).add(
-        inputText(query.getName()).value(query).auto(),
-        submit('Search'),
-        reset('Clear')
+    return form().flexRow().onSubmit(b => query.set(b.get().query.value)).onReset(set(query, '')).add(
+        inputText('query').value(query).auto().placeholder('Search '),
+        submit('🔎').title('Search'),
+        reset('⌫').title('Reset the query')
     )
 }
 
-export function searchTable(searchCall, page = searchCall.input.page, query = searchCall.input.query, result = searchCall.output) {
-    // This line is currently causing duplicate rest call with intermediate state.
-    // query.onChange(() => page.set(0), false, false)
-    return dataTable(result.content, result.pageable.offset).add(
-        captionTop().setClass('rap-search').textLeft().nowrap().add(searchControls(query)),
-        captionTop().setClass('rap-error').textLeft().nowrap().add(searchCall.error),
-        captionBottom().setClass('rap-paging').textLeft().nowrap().add(pageControls(page, result, searchCall.state.loading))
-    )
-}
 export function linearizeSimpleTree(items, level = 0) {
     return items.flatMap(item => [{level: level, node: item}, ...(item.expanded && item.children ? linearizeSimpleTree(item.children, level + 1) : [])])
 }
@@ -230,7 +191,7 @@ export function linearizePageableTree(pagedTreeModel) {
 }
 
 export function treeColumn(name, original) {
-    return new DataTransformingColumn(name, (data, td, index, table) => {
+    return new Column(name, (data, td) => {
         td.paddingLeft(data.level, 'em')
         if(data.node.children)
             td.add(expander(attach(data.node).expanded.observeChanges(trigger(original))))

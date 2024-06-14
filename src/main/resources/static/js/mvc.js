@@ -134,6 +134,22 @@ export function usingTemplate(template) {
     }
 }
 
+export function restTemplate(template) {
+    let parts = template.split(/\{([^{]+)}/g)
+    let values = Array.from(parts)
+    return function(value) {
+        for(let i = 1; i < values.length; i += 2) values[i] = parts[i] + "=" + encodeURIComponent(value)
+        return values.join('')
+    }
+}
+
+export function restParameter(href, uriModel) {
+    let parts = href.split(/\{&([^{]+)}/g)
+    let f = restTemplate(href)
+    let i = uriModel.get().split(parts[1] + '=')[1]?.split('&')[0]
+    return state(i&&decodeURIComponent(i)).observeChanges(v => uriModel.set(f(v)))
+}
+
 export function usingUriTemplate(template) {
     let fileFunction = usingTemplate(template)
     return function(raw) {

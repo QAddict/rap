@@ -48,6 +48,8 @@ export class HtmlBuilder extends ElementBuilder {
     left(...args) {return this.css('left', ...args)}
     right(...args) {return this.css('right', ...args)}
     resize(value) {return this.css('resize', value)}
+    resizeHorizontal() {return this.resize('horizontal')}
+    resizeVertical() {return this.resize('vertical')}
     color(value) {return this.css('color', value)}
     fontSize(...args) {return this.css('font-size', ...args)}
     fontStyle(...args) {return this.css('font-style', ...args)}
@@ -83,6 +85,7 @@ export class HtmlBuilder extends ElementBuilder {
     transform(...value) {return this.css('transform', ...value)}
     rotate(...value) {return this.transform('rotate(', ...value, ')')}
     overflow(...value) {return this.css('overflow', ...value)}
+    overflowHidden() {return this.overflow('hidden')}
     overflowX(...value) {return this.css('overflow-x', ...value)}
     overflowY(value) {return this.css('overflow-y', value)}
     flex(...args) {return this.css('flex', ...args)}

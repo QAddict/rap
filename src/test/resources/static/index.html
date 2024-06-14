@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
-<head><meta charset="UTF-8"><title>Title</title><link rel="stylesheet" type="text/css" href="/css/rap.css"><script type="module">
+<head><meta charset="UTF-8"><title>Title</title><link rel="stylesheet" type="text/css" href="/css/rap.css" /><script type="module">
     import {body, h1} from "/js/html.js";
     import {dataTable, row} from "/js/ui.js";
 
     body(
         h1('Test app from files'),
-        dataTable('/query/books?size=1')
+        dataTable('/query/books')
             .column(row.title, row.author.firstName, row.author.lastName)
             .enableColumnFiltering()
             .enableColumnMove()

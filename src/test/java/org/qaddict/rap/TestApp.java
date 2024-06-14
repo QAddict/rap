@@ -32,7 +32,8 @@ public class TestApp {
     public Iterable<Book> books(BookRepository bookRepository) {
         return bookRepository.saveAll(List.of(
                 new Book().setTitle("Hahaha").setAuthor(new Author().setFirstName("Mark").setLastName("Twain")),
-                new Book().setTitle("Krtek").setAuthor(new Author().setFirstName("Zdenek").setLastName("Miller"))
+                new Book().setTitle("Krtek").setAuthor(new Author().setFirstName("Zdenek").setLastName("Miller")),
+                new Book().setTitle("Neuromancer").setAuthor(new Author().setFirstName("William").setLastName("Gibson"))
         ));
     }
 }

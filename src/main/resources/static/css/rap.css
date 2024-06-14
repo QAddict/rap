@@ -22,21 +22,29 @@ body {
 
 th, td {
   text-align: left;
+  padding: 5px;
 }
 
-th {
-  color: white;
-  background-color: grey;
+a:hover {
+  text-decoration: underline;
+}
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+thead tr {
+  border-bottom: 1px solid black;
 }
 
-tr:nth-child(even) {
-  background-color: #dddddd;
+tbody tr {
+  border-bottom: 1px solid #ddd;
 }
 
 .rap-columns-toggle {
   background-color: white;
   border: 1px solid silver;
-  padding: 3px;
+  padding-left: 5px;
+  padding-right: 5px;
   border-bottom-left-radius: 3px;
 }
 
@@ -49,4 +57,26 @@ tr:nth-child(even) {
 .rap-paging {
   margin-right: 0.2em;
   margin-left: 0.2em;
+}
+
+th.rap-table-header-drop {
+  border-left: 8px solid #d0d3ad;
+  margin-left: 10px;
+}
+
+input {
+  margin: 3px;
+}
+input[type='submit'], input[type='reset'], button {
+  border: none;
+  box-shadow: 2px 2px 3px grey;
+  padding: 5px;
+}
+
+input[type='submit'], button {
+  background-color: #c6e8f9;
+}
+
+input[type='submit']:active, input[type='reset']:active, button:active {
+  box-shadow: 1px 1px 1px grey;
 }

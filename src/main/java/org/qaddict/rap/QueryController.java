@@ -6,9 +6,6 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import foundation.jpa.querydsl.QueryVariables;
 import foundation.jpa.querydsl.QuerydslParser;
 import jakarta.persistence.EntityManager;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.PagedModel;
@@ -20,7 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
 
 import static java.util.Objects.isNull;
 import static java.util.function.Function.identity;
@@ -50,6 +46,7 @@ public class QueryController {
     @GetMapping("/query/{entity}s")
     public CollectionModel<?> query(
             @PathVariable String entity,
+            @RequestParam(defaultValue = "") String scope,
             @RequestParam(defaultValue = "") String where,
             @RequestParam(defaultValue = "") String orderBy,
             @RequestParam(defaultValue = "") String select,
@@ -65,6 +62,7 @@ public class QueryController {
 
         query.from(entityPath);
 
+        if(!scope.isBlank()) query.where(parser.parsePredicate(scope));
         if(!where.isBlank()) query.where(parser.parsePredicate(where));
         if(!orderBy.isBlank()) query.orderBy(parser.parseOrderSpecifier(orderBy));
         if(!groupBy.isBlank()) query.groupBy(parser.parseSelect(groupBy));
@@ -78,25 +76,25 @@ public class QueryController {
             PagedModel.PageMetadata pageMetadata = new PagedModel.PageMetadata(size, page, query.fetchCount());
             model = PagedModel.of(query.fetch(), pageMetadata);
             long lastPage = pageMetadata.getTotalPages() - 1;
-            model.add(linkTo(methodOn(QueryController.class).query(entity, where, orderBy, select, groupBy, having, null, size)).withRel("page"));
+            model.add(linkTo(methodOn(QueryController.class).query(entity, scope, where, orderBy, select, groupBy, having, null, size)).withRel("page"));
             if(page > 0) {
-                model.add(linkTo(methodOn(QueryController.class).query(entity, where, orderBy, select, groupBy, having, 0L, size)).withRel("first"));
-                model.add(linkTo(methodOn(QueryController.class).query(entity, where, orderBy, select, groupBy, having, page - 1, size)).withRel("prev"));
+                model.add(linkTo(methodOn(QueryController.class).query(entity, scope, where, orderBy, select, groupBy, having, 0L, size)).withRel("first"));
+                model.add(linkTo(methodOn(QueryController.class).query(entity, scope, where, orderBy, select, groupBy, having, page - 1, size)).withRel("prev"));
             }
             if(page < lastPage) {
-                model.add(linkTo(methodOn(QueryController.class).query(entity, where, orderBy, select, groupBy, having, page + 1, size)).withRel("next"));
-                model.add(linkTo(methodOn(QueryController.class).query(entity, where, orderBy, select, groupBy, having, lastPage, size)).withRel("last"));
+                model.add(linkTo(methodOn(QueryController.class).query(entity, scope, where, orderBy, select, groupBy, having, page + 1, size)).withRel("next"));
+                model.add(linkTo(methodOn(QueryController.class).query(entity, scope, where, orderBy, select, groupBy, having, lastPage, size)).withRel("last"));
             }
 
             for(Long s : List.of(20L, 25L, 30L, 40L, 50L))
-                model.add(linkTo(methodOn(QueryController.class).query(entity, where, orderBy, select, groupBy, having, 0L, s)).withRel("size" + s));
+                model.add(linkTo(methodOn(QueryController.class).query(entity, scope, where, orderBy, select, groupBy, having, 0L, s)).withRel("size" + s));
 
         } else {
             model = CollectionModel.of(query.fetch());
         }
 
-        model.add(linkTo(methodOn(QueryController.class).query(entity, null, orderBy, select, groupBy, having, page, size)).withRel("search"));
-
+        model.add(linkTo(methodOn(QueryController.class).query(entity, scope, null, orderBy, select, groupBy, having, page, size)).withRel("search"));
+        model.add(linkTo(methodOn(QueryController.class).query(entity, null, where, orderBy, select, groupBy, having, page, size)).withRel("scope"));
 
         return model;
     }
