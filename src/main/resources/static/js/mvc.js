@@ -9,8 +9,9 @@ export class Observable {
     get() {throw new Error("Undeclared method Observable.get()")}
     observeChanges(observer) {throw new Error("Undeclared method Observable.observeChanges(observer)")}
     observe(observer) {observer(this.get()); return this.observeChanges(observer)}
+    set(newValue) {throw new Error("Undeclared method Model.set(newValue)");}
+    update(aFunction) {return this.set(aFunction(this.get()))}
     trigger() {throw new Error("Undeclared method trigger()")}
-    routeTo(model) {return this.observe(value => model.set(value))}
 }
 
 export function isObservable(object) {
@@ -18,7 +19,7 @@ export function isObservable(object) {
 }
 
 export class ObservableTransformer extends Observable {
-    constructor(parent, transform) {super(); this.__parent = parent; this.__transform = transform}
+    constructor(parent, transform, name = "") {super(name); this.__parent = parent; this.__transform = transform}
     get() {return this.__transform(this.__parent.get());}
     observe(observer) {this.__parent.observe(value => observer(this.__transform(value))); return this}
     observeChanges(observer) {this.__parent.observeChanges(value => observer(this.__transform(value))); return this}
@@ -35,7 +36,7 @@ export class Model extends Observable {
     update(aFunction) {return this.set(aFunction(this.get()))}
 }
 
-export class StateModel extends Model {
+export class StateModel extends Observable {
     constructor(initialValue) {super();this.__value = initialValue;this._observers = []}
     get() {return this.__value;}
     observeChanges(observer) {this._observers.push(observer); return this}
@@ -47,7 +48,7 @@ export function stateModel(value = null) {
     return isObservable(value) ? value : new StateModel(value)
 }
 
-export class AttachedModel extends Model {
+export class AttachedModel extends Observable {
     constructor(object, name) {super(name);this.__object = object;this._observers = []}
     get() {return this.__object[this.__name];}
     observeChanges(observer) {this._observers.push(observer); return this}
@@ -61,13 +62,9 @@ export function attach(object) {
     })
 }
 
-export class PropertyModel extends Model {
-    constructor(parent, name) {super(name); this.__parent = parent;}
+export class PropertyModel extends ObservableTransformer {
+    constructor(parent, name) {super(parent, v => v?.[name], name); this.__parent = parent; this.__name = name}
     set(newValue) {this.__parent.get()[this.__name] = newValue; return this.trigger()}
-    get() {return this.__parent.get()?.[this.__name];}
-    observeChanges(observer) {this.__parent.observeChanges(value => observer(value?.[this.__name])); return this}
-    trigger() {this.__parent.trigger(); return this}
-    getName() {return this.__name;}
 }
 
 export class DependencyModel extends PropertyModel {
@@ -202,7 +199,7 @@ export class Content {
     get() {return this.__node}
     remove() {if(this.__node.parentNode) this.__node.parentNode.removeChild(this.__node); return this}
     replace(replacement) {if(this.__node.parentNode) this.__node.parentNode.replaceChild(node(replacement), this.__node); return this}
-    prepend(content) {if(this.__node.parentNode) this.__node.parentNode.insertBefore(node(content), this.__node); return this}
+    prepend(...content) {if(this.__node.parentNode) content.forEach(i => this.__node.parentNode.insertBefore(node(i), this.__node)); return this}
 }
 
 export function content(node) {
@@ -210,10 +207,7 @@ export function content(node) {
 }
 
 export function node(value) {
-    if(value instanceof Content) return value.get()
-    if(value instanceof Node) return value
-    if(isObservable(value)) return observableTextNode(value)
-    return document.createTextNode(value)
+    return (value instanceof Content) ? value.get() : (value instanceof Node) ? value : isObservable(value) ? observableTextNode(value) : document.createTextNode(value)
 }
 
 function observableTextNode(observable) {
@@ -230,6 +224,7 @@ export class DynamicFragmentBuilder extends Content {
     constructor(start, end) {super(document.createDocumentFragment()); this.get().appendChild((this.__start = start).get()); this.get().appendChild((this.__end = end).get())}
     add(...args) {this.__end.prepend(...args); return this}
     clear() {while(this.__start.get().nextSibling && this.__start.get().nextSibling !== this.__end.get()) content(this.__start.get().nextSibling).remove(); return this}
+    set(...args) {this.clear(); return this.add(...args)}
 }
 
 export function dynamicFragment(start = text(), end = text()) {
@@ -238,16 +233,9 @@ export function dynamicFragment(start = text(), end = text()) {
 
 export class ElementBuilder extends Content {
     constructor(node) {super(node);}
-    add(...args) {
-        for(let i = 0; i < args.length; i++) if(args[i] != null) this.get().appendChild(node(args[i]))
-        return this
-    }
-
-    clear() {
-        let node = this.get()
-        while(node.firstChild) node.removeChild(node.firstChild)
-        return this
-    }
+    add(...args) {for(let i = 0; i < args.length; i++) if(args[i] != null) this.get().appendChild(node(args[i]));return this}
+    clear() {let node = this.get(); while(node.firstChild) node.removeChild(node.firstChild); return this}
+    apply(f, ...args) {f(this, ...args); return this}
 
     _manipulate(f, args) {
         if(args.length === 0) return this
@@ -257,99 +245,26 @@ export class ElementBuilder extends Content {
         return this
     }
 
-    set(name, ...args) {
-        return this._manipulate(value => {
-            if(value == null) this.get().removeAttribute(name)
-            else this.get().setAttribute(name, value)
-        }, args)
-    }
+    set(name, ...args) {return this._manipulate(value => value == null ? this.get().removeAttribute(name) : this.get().setAttribute(name, value), args)}
+    css(property, ...args) {return this._manipulate(value => value == null ? this.get().style.removeProperty(property) : this.get().style.setProperty(property, value), args)}
+    setProperty(name, ...args) {return this._manipulate(value => this.get()[name] = (value == null) ? null : value, args)}
 
-    css(property, ...args) {
-        return this._manipulate(value => {
-            if(value == null) this.get().style.removeProperty(property)
-            else this.get().style.setProperty(property, value)
-        }, args)
-    }
-
-    setProperty(name, ...args) {
-        return this._manipulate(value => {
-            if(value == null) this.get()[name] = null
-            else this.get()[name] = value
-        }, args)
-    }
-
-    /*
-     Dealing with events
-     */
     on(event, handler, bubble) {
-        this.get().addEventListener(event, bubble ? e => handler(this, e) : e => {
-            handler(this, e)
-            e.preventDefault()
-            return false
-        })
+        this.get().addEventListener(event, bubble ? e => handler(this, e) : e => {handler(this, e); e.preventDefault(); return false})
         return this
     }
-
-    apply(f, ...args) {
-        f(this, ...args)
-        return this
-    }
-
 }
 
 //endregion
 
 //region <HTML entries>
 
-/**
- * Space with start and end boundary, which will be populated dynamically as reaction to model change, using its display
- * function.
- * On any change of the model, the space is re-rendered using the display function.
- * It can handle following situation.
- * If model value is an array, every item will be rendered using the display function and inserted into the space.
- * If model value is null, space stays empty.
- * Otherwise, the value itself is rendered using the display function.
- *
- * This function will always re-render all items newly on model change. That means, that any state in the previously
- * rendered item view may be lost.
- * For rendering, which re-uses previously rendered items, if they remain, see function `refresh()`.
- *
- * @param start Start element of the space.
- * @param model Model (state), driving the content.
- * @param itemDisplayFunction Function used to render an item. The function accepts the item value, and an index, and
- *        must return appendable content.
- * @param end Optional end element, which is used as an anchor of the space, so all rendered content is prepended before
- *        this element. If not provided, artificial empty text node is created for that purpose.
- * @returns {Content} Fragment builder.
- */
 export function range(start, model, itemDisplayFunction = item => item, end = text()) {
     let f = dynamicFragment(start, end)
-    model.observe(value => {
-        f.clear();
-        (Array.isArray(value) ? value : null == value ? [] : [value]).forEach((item, index) => f.add(itemDisplayFunction(item, index)))
-    })
+    model.observe(value => f.set(...(Array.isArray(value) ? value : null == value ? [] : [value]).map((item, index) => itemDisplayFunction(item, index))))
     return f
 }
 
-/**
- * Space which will be populated dynamically as reaction to model change, using its display function.
- * On any change of the model, the space is re-rendered using the display function.
- * It can handle following situation.
- * If model value is an array, every item will be rendered using the display function and inserted into the space.
- * If model value is null, space stays empty.
- * Otherwise, the value itself is rendered using the display function.
- *
- * This function will always re-render all items newly on model change. That means, that any state in the previously
- * rendered item view may be lost.
- * For rendering, which re-uses previously rendered items, if they remain, see function `refresh()`.
- *
- * @param model Model (state), driving the content.
- * @param itemDisplayFunction Function used to render an item. The function accepts the item value, and an index, and
- *        must return appendable content.
- * @param end Optional end element, which is used as an anchor of the space, so all rendered content is prepended before
- *        this element. If not provided, artificial empty text node is created for that purpose.
- * @returns {Content} Fragment builder.
- */
 export function each(model, itemDisplayFunction = item => item, end = text()) {
     return range(text(), model, itemDisplayFunction, end)
 }
@@ -367,13 +282,6 @@ export function produce(model, itemDisplayFunction = item => item, end = text())
 //endregion
 
 //region <Commands>
-/**
- * Create command which sets a model to fixed value or actual value of another model.
- *
- * @param model Model to set.
- * @param value Value to set the model to.
- * @returns {{(): *, (): *}}
- */
 export function set(model, value) {
     return isObservable(value) ? () => model.set(value.get()) : () => model.set(value)
 }
@@ -386,12 +294,6 @@ export function addTo(arrayModel, item) {
     return update(arrayModel, a => a.push(item))
 }
 
-/**
- * Create command to toggle value of provided model to its negation.
- *
- * @param model Model to negate.
- * @returns {function(): *}
- */
 export function toggle(model) {
     return () => model.set(!model.get())
 }
@@ -404,12 +306,6 @@ export function ctrlKey(ctrlHandler, defaultHandler) {
     return (content, event) => event.ctrlKey ? ctrlHandler(content, event) : defaultHandler(content, event)
 }
 
-/**
- * Create command to trigger provided model.
- * This command is mainly used to trigger call or remote data.
- * @param model Model to trigger.
- * @returns {function(): *}
- */
 export function trigger(model) {
     return () => model.trigger()
 }
@@ -435,9 +331,7 @@ export function clear(content) {
 }
 
 export function show(dialog) {
-    if(typeof dialog == 'string')
-        return () => document.getElementById(dialog).showModal()
-    return () => dialog.get().showModal()
+    return (typeof dialog === 'string') ? () => document.getElementById(dialog).showModal() : () => dialog.get().showModal()
 }
 
 //endregion
