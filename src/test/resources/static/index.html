@@ -6,10 +6,11 @@
 
     body(
         h1('Test app from files'),
-        dataTable('/query/books')
-            .column(row.title, row.author.firstName, row.author.lastName)
-            .enableColumnFiltering()
-            .enableColumnMove()
+        dataTable('/query/books').enableColumnFiltering().enableColumnMove().column(
+            row.title,
+            row.author.firstName,
+            row.author.lastName
+        )
     )
 
 </script></head>
