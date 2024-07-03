@@ -66,8 +66,9 @@ export class DataTable extends HtmlBuilder {
     constructor(dataModel, t = table()) {
         super(node(t));
         if(!isObservable(dataModel)) {
-            dataModel = get(dataModel)
-            dataModel.triggerOn(dataModel.uri)
+            let channel = get(dataModel)
+            channel.triggerOn(channel.uri)
+            dataModel = channel.output
         }
         let columnMove = stateModel()
         this.rowCustomizers = []
