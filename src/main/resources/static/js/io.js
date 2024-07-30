@@ -1,4 +1,4 @@
-import {Model, state, stateModel, transform, TransformedState} from "./rap.js";
+import {Observable, state, stateModel, transform, TransformedState} from "./rap.js";
 
 export function fromJson(initialValue = null) {
     return new TransformedState(request => request == null ? null : JSON.parse(request.responseText), initialValue)
@@ -9,7 +9,7 @@ export function fromText(initialValue = null) {
 }
 
 
-export class Channel extends Model {
+export class Channel extends Observable {
 
     constructor(method, uri, headers = {}) {
         super();
