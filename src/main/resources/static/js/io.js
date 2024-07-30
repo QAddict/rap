@@ -1,4 +1,4 @@
-import {Model, state, stateModel, transform, TransformedState} from "./mvc.js";
+import {Model, state, stateModel, transform, TransformedState} from "./core.js";
 
 export function fromJson(initialValue = null) {
     return new TransformedState(request => request == null ? null : JSON.parse(request.responseText), initialValue)
@@ -30,6 +30,7 @@ export class Channel extends Model {
     observe(observer) {this.output.observe(observer);return this}
     observeChanges(observer) {this.output.observeChanges(observer);return this}
     triggerOn(...input) {input.forEach(i => i.observe(() => this.trigger())); return this}
+    triggerOnUri() {return this.triggerOn(this.uri)}
     triggerOnChanges(...input) {input.forEach(i => i.observeChanges(() => this.trigger())); return this}
 
     trigger() {
@@ -52,6 +53,10 @@ export class Channel extends Model {
 
 export function get(uri) {
     return new Channel("GET", uri)
+}
+
+export function isChannel(object) {
+    return object instanceof Channel
 }
 
 export function postJson(uri, input) {

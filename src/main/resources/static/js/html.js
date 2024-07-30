@@ -1,4 +1,4 @@
-import {ElementBuilder, isObservable, join, transform, set, stateModel, to} from "./mvc.js";
+import {ElementBuilder, isObservable, join, transform, set, stateModel, to} from "./core.js";
 
 //region <HTML builder>
 

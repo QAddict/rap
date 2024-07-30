@@ -1,6 +1,6 @@
-import {addTo, attach, ctrlKey, each, falseTo, isObservable, node, render, restParameter, set, state, stateModel, to, toggle, transform, trigger, when} from "./mvc.js";
+import {addTo, attach, ctrlKey, each, falseTo, node, render, restParameter, set, state, stateModel, to, toggle, transform, trigger, when} from "./core.js";
 import {a, captionBottom, captionTop, checkbox, div, form, HtmlBuilder, input, inputText, label, reset, span, submit, table, tbody, td, th, thead, tr} from "./html.js";
-import {get} from "./io.js"
+import {get, isChannel} from "./io.js"
 
 export function expander(model, enabled = stateModel(true)) {
     return span()
@@ -65,11 +65,6 @@ export class DataTable extends HtmlBuilder {
 
     constructor(dataModel, t = table()) {
         super(node(t));
-        if(!isObservable(dataModel)) {
-            let channel = get(dataModel)
-            channel.triggerOn(channel.uri)
-            dataModel = channel.output
-        }
         let columnMove = stateModel()
         this.rowCustomizers = []
         this.columnsModel = state([])
@@ -77,7 +72,6 @@ export class DataTable extends HtmlBuilder {
         this.moveEnabled = false
         this.visibleColumnsModel = transform(this.columnsModel, cols => cols.filter(col => !col.hidden()))
         this.add(
-            render(detectSearch(dataModel), link => captionTop(searchControls(restParameter(link.href, dataModel.uri)))),
             thead(tr(each(this.visibleColumnsModel, (column, index) => {
                 let header = th().resizeHorizontal().overflowHidden()
                 if(this.moveEnabled) header
@@ -89,19 +83,7 @@ export class DataTable extends HtmlBuilder {
                 let cell = td()
                 return cell.add(column.renderCell(item, cell, index, this))
             })))),
-            render(detectPaging(dataModel), page => captionBottom(
-                div(form().onSubmit(event => dataModel.uri.set(parseInt(event.target.page.value) - 1)).add(
-                    nav(dataModel, 'first').add('\u226A'),
-                    nav(dataModel, 'prev').add('<'),
-                    span('Page: ', input('page').width(2, 'em').value(page.number), ' of ', page.totalPages, ' (rows ', (page.number * page.size), ' - ', (page.number * page.size), ' of ', page.totalElements, ')').setClass('rap-paging'),
-                    nav(dataModel, 'next').add('>'),
-                    nav(dataModel, 'last').add('\u226B'),
-                    //a().setClass('paging reload-page', transform(loading, to(' data-loading'))).add('\u21BB').title('Reload page').onClick(trigger(page))
-                ).auto(), form(
-                    ...Object.entries(dataModel.get()._links).filter(([key]) => key.startsWith('size')).map(([key]) => nav(dataModel, key).add(key.substring(4))),
-                )).flexRow()
-            ).textLeft())
-        ).width('100%')
+        )
     }
 
     repaint() {this.columnsModel.trigger(); return this}
@@ -127,8 +109,7 @@ export class DataTable extends HtmlBuilder {
     }
 
     withSelection(selectionModel, selectedClass = 'selected') {
-        return this.customizeRow((tr, data) => tr.onClick(ctrlKey(addTo(selectionModel, data), set(selectionModel, [data])))
-            .addClass(transform(selectionModel, selection => selection.includes(data) ? selectedClass : null)))
+        return this.customizeRow((tr, data) => tr.onClick(ctrlKey(addTo(selectionModel, data), set(selectionModel, [data]))).addClass(transform(selectionModel, selection => selection.includes(data) ? selectedClass : null)))
     }
 
     transferItems(slot) {
@@ -140,7 +121,7 @@ export class DataTable extends HtmlBuilder {
         return this.repaint()
     }
 
-    column(...defs) {
+    columns(...defs) {
         this.columnsModel.get().push(...defs)
         return this.repaint()
     }
@@ -150,11 +131,26 @@ export class DataTable extends HtmlBuilder {
         this.columnsModel.get().splice(to, 0, ...f)
         return this.repaint()
     }
-
 }
 
-export function dataTable(result) {
-    return new DataTable(result)
+export function dataTable(dataSource) {
+    let ds = typeof dataSource === "string" ? get(dataSource).triggerOnUri() : stateModel(dataSource)
+    return isChannel(ds)
+        ? new DataTable(ds.output, table(render(detectSearch(ds), link => captionTop(searchControls(restParameter(link.href, ds.uri)))))).add(
+            render(detectPaging(ds), page => captionBottom(
+                div(form().onSubmit(event => ds.uri.set(parseInt(event.target.page.value) - 1)).add(
+                    nav(ds, 'first').add('\u226A'),
+                    nav(ds, 'prev').add('<'),
+                    span('Page: ', input('page').width(2, 'em').value(page.number), ' of ', page.totalPages, ' (rows ', (page.number * page.size), ' - ', (page.number * page.size), ' of ', page.totalElements, ')').setClass('rap-paging'),
+                    nav(ds, 'next').add('>'),
+                    nav(ds, 'last').add('\u226B'),
+                    //a().setClass('paging reload-page', transform(loading, to(' data-loading'))).add('\u21BB').title('Reload page').onClick(trigger(page))
+                ).auto(), form(
+                    ...Object.entries(ds.get()._links).filter(([key]) => key.startsWith('size')).map(([key]) => nav(ds, key).add(key.substring(4))),
+                )).flexRow()
+            ).textLeft())
+        )
+        : new DataTable(ds)
 }
 
 function nav(channel, link) {
@@ -201,12 +197,13 @@ export function treeColumn(name, original) {
 }
 
 export function resizeableColumns(leftColumnContent, rightColumnContent, leftWidth = stateModel('49%')) {
-    let start = state({start: 0, width: 0})
+    let start = state(0)
     return div(
-        div(leftColumnContent).width(leftWidth),
-        div().setClass('resizer-x').draggable(true).onDragstart((b, e) => start.set({start: e.clientX, width: b.get().previousSibling.clientWidth})).onDrag((b, e) => {
-            leftWidth.set((start.get().width + e.clientX - start.get().start) + 'px')
-        }),
-        div(rightColumnContent).auto()
+        leftColumnContent.width(leftWidth),
+        div().setClass('resizer-x').draggable(true).onDragstart((b, e) => {
+            start.set(e.clientX - leftColumnContent.get().clientWidth);
+            e.dataTransfer.setDragImage(new Image(), 0, 0)
+        }).onDrag((b, e) => leftWidth.set((e.clientX - start.get()) + 'px')),
+        rightColumnContent.auto()
     ).flexRow()
 }

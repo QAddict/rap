@@ -3,15 +3,19 @@
 <head><meta charset="UTF-8"><title>Title</title><link rel="stylesheet" type="text/css" href="/css/rap.css" /><script type="module">
     import {body, h1} from "/js/html.js";
     import {dataTable, row} from "/js/ui.js";
+    import {resizeableColumns} from "/js/ui.js";
 
     body(
         h1('Test app from files'),
-        dataTable('/query/books').enableColumnFiltering().enableColumnMove().column(
-            row.title,
-            row.author.firstName,
-            row.author.lastName
-        )
-    )
+        resizeableColumns(
+            dataTable('/query/books').enableColumnFiltering().enableColumnMove().columns(
+                row.title,
+                row.author.firstName,
+                row.author.lastName
+            ),
+            dataTable([{a: 1, b: 2}, {a: 4, b: 5}]).columns(row.a, row.b)
+        ).auto()
+    ).display('flex').flexDirection('column').height('100vh').margin(0)
 
 </script></head>
 </html>
