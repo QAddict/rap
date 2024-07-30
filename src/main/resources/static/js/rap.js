@@ -1,7 +1,3 @@
-//region <Model>
-/**
- * Observable represents a value, which notifies observers about its changes.
- */
 export class Observable {
     constructor(name = "") {this.setName(name)}
     setName(name) {this.__name = name; return this}
@@ -14,20 +10,12 @@ export class Observable {
     trigger() {throw new Error("Undeclared method trigger()")}
 }
 
-export function isObservable(object) {
-    return object instanceof Observable
-}
-
 export class ObservableTransformer extends Observable {
     constructor(parent, transform, name = "") {super(name); this.__parent = parent; this.__transform = transform}
     get() {return this.__transform(this.__parent.get());}
     observe(observer) {this.__parent.observe(value => observer(this.__transform(value))); return this}
     observeChanges(observer) {this.__parent.observeChanges(value => observer(this.__transform(value))); return this}
     trigger() {this.__parent.trigger(); return this}
-}
-
-export function transform(observable, transformer) {
-    return new ObservableTransformer(observable, transformer)
 }
 
 export class Model extends Observable {
@@ -44,22 +32,12 @@ export class StateModel extends Observable {
     set(newValue) {this.__value = newValue; return this.trigger()}
 }
 
-export function stateModel(value = null) {
-    return isObservable(value) ? value : new StateModel(value)
-}
-
 export class AttachedModel extends Observable {
     constructor(object, name) {super(name);this.__object = object;this._observers = []}
     get() {return this.__object[this.__name];}
     observeChanges(observer) {this._observers.push(observer); return this}
     trigger() {this._observers.forEach(observer => observer(this.get())); return this}
     set(newValue) {this.__object[this.__name] = newValue; return this.trigger()}
-}
-
-export function attach(object) {
-    return new Proxy({}, {
-        get(target, name) {return target[name] === undefined ? new AttachedModel(object, name) : target[name]}
-    })
 }
 
 export class PropertyModel extends ObservableTransformer {
@@ -72,17 +50,20 @@ export class DependencyModel extends PropertyModel {
     set(value) {this._deps(this.get(), value); return super.set(value)}
 }
 
-export let stateProxyHandler = {
-    get(target, name) {return (target[name] === undefined) ? target[name] = state(new PropertyModel(target, name)) : target[name]}
-}
-
-export function state(stateOrValue = null, proxyHandler = stateProxyHandler) {
-    return new Proxy(stateModel(stateOrValue), proxyHandler)
-}
-
 export class TransformedState extends StateModel {
     constructor(transformation, initialValue = null) {super(transformation(initialValue));this._transformation = transformation}
     set(newValue) {return super.set(this._transformation(newValue));}
+}
+
+export function isObservable(object) {return object instanceof Observable}
+export function transform(observable, transformer) {return new ObservableTransformer(observable, transformer)}
+export function stateModel(value = null) {return isObservable(value) ? value : new StateModel(value)}
+export let stateProxyHandler = {get(target, name) {return (target[name] === undefined) ? target[name] = state(new PropertyModel(target, name)) : target[name]}}
+export function state(stateOrValue = null, proxyHandler = stateProxyHandler) {return new Proxy(stateModel(stateOrValue), proxyHandler)}
+export function attach(object) {
+    return new Proxy({}, {
+        get(target, name) {return target[name] === undefined ? new AttachedModel(object, name) : target[name]}
+    })
 }
 
 //endregion
@@ -94,41 +75,19 @@ export function argumentsModel(...modelsAndValues) {
     return model
 }
 
-export function functionModel(f, ...args) {
-    return transform(argumentsModel(...args), v => f(...v))
-}
-
-export function join(glue, array) {
-    return transform(argumentsModel(...array), a => a.join(glue))
-}
-
-export function concat(...args) {
-    return join('', args)
-}
-
-export function to(trueValue, falseValue = null) {
-    return value => value ? trueValue : falseValue
-}
-
-export function falseTo(falseValue) {
-    return to(null, falseValue)
-}
-
+export function functionModel(f, ...args) {return transform(argumentsModel(...args), v => f(...v))}
+export function join(glue, array) {return transform(argumentsModel(...array), a => a.join(glue))}
+export function concat(...args) {return join('', args)}
+export function to(trueValue, falseValue = null) {return value => value ? trueValue : falseValue}
+export function falseTo(falseValue) {return to(null, falseValue)}
 export let negate = value => !value
-
 export let invert = value => -value
-
-export function runEitherOr(trueCommand, falseCommand) {
-    return value => value ? trueCommand() : falseCommand()
-}
+export function runEitherOr(trueCommand, falseCommand) {return value => value ? trueCommand() : falseCommand()}
 
 export function usingTemplate(template) {
     let parts = template.split(/\{([^{]+)}/g)
     let values = Array.from(parts)
-    return function(value) {
-        for(let i = 1; i < values.length; i += 2) values[i] = value[parts[i]]
-        return values.join('')
-    }
+    return value => {for(let i = 1; i < values.length; i += 2) values[i] = value[parts[i]]; return values.join('')}
 }
 
 export function restTemplate(template) {
@@ -167,13 +126,8 @@ export function properties(map) {
     }
 }
 
-export function uri(template, model) {
-    return transform(transform(state(model), properties(encodeURIComponent)), usingUriTemplate(template))
-}
-
-export function path(template, model) {
-    return transform(transform(model, properties(encodeURIComponent)), usingTemplate(template))
-}
+export function uri(template, model) {return transform(transform(state(model), properties(encodeURIComponent)), usingUriTemplate(template))}
+export function path(template, model) {return transform(transform(model, properties(encodeURIComponent)), usingTemplate(template))}
 
 export function locationEncoded() {
     let data = state()
@@ -191,9 +145,6 @@ export function locationEncoded() {
     return data
 }
 
-//endregion
-
-//region <HTML View>
 export class Content {
     constructor(node) {this.__node = node}
     get() {return this.__node}
@@ -202,22 +153,10 @@ export class Content {
     prepend(...content) {if(this.__node.parentNode) content.forEach(i => this.__node.parentNode.insertBefore(node(i), this.__node)); return this}
 }
 
-export function content(node) {
-    return new Content(node)
-}
-
-export function node(value) {
-    return (value instanceof Content) ? value.get() : (value instanceof Node) ? value : isObservable(value) ? observableTextNode(value) : document.createTextNode(value)
-}
-
 function observableTextNode(observable) {
     let n = document.createTextNode(observable.get())
     observable.observe(value => n.nodeValue = value, false)
     return n
-}
-
-export function text(value = '') {
-    return content(isObservable(value) ? observableTextNode(value) : document.createTextNode(value))
 }
 
 export class DynamicFragmentBuilder extends Content {
@@ -227,9 +166,10 @@ export class DynamicFragmentBuilder extends Content {
     set(...args) {this.clear(); return this.add(...args)}
 }
 
-export function dynamicFragment(start = text(), end = text()) {
-    return new DynamicFragmentBuilder(start, end)
-}
+export function content(node) {return new Content(node)}
+export function node(value) {return (value instanceof Content) ? value.get() : (value instanceof Node) ? value : isObservable(value) ? observableTextNode(value) : document.createTextNode(value)}
+export function text(value = '') {return content(isObservable(value) ? observableTextNode(value) : document.createTextNode(value))}
+export function dynamicFragment(start = text(), end = text()) {return new DynamicFragmentBuilder(start, end)}
 
 export class ElementBuilder extends Content {
     constructor(node) {super(node);}
@@ -248,16 +188,8 @@ export class ElementBuilder extends Content {
     set(name, ...args) {return this._manipulate(value => value == null ? this.get().removeAttribute(name) : this.get().setAttribute(name, value), args)}
     css(property, ...args) {return this._manipulate(value => value == null ? this.get().style.removeProperty(property) : this.get().style.setProperty(property, value), args)}
     setProperty(name, ...args) {return this._manipulate(value => this.get()[name] = (value == null) ? null : value, args)}
-
-    on(event, handler, bubble) {
-        this.get().addEventListener(event, bubble ? e => handler(this, e) : e => {handler(this, e); e.preventDefault(); return false})
-        return this
-    }
+    on(event, handler, bubble) {this.get().addEventListener(event, bubble ? e => handler(this, e) : e => {handler(this, e); e.preventDefault(); return false}); return this}
 }
-
-//endregion
-
-//region <HTML entries>
 
 export function range(start, model, itemDisplayFunction = item => item, end = text()) {
     let f = dynamicFragment(start, end)
@@ -265,73 +197,19 @@ export function range(start, model, itemDisplayFunction = item => item, end = te
     return f
 }
 
-export function each(model, itemDisplayFunction = item => item, end = text()) {
-    return range(text(), model, itemDisplayFunction, end)
-}
-
-export function render(model, itemDisplayFunction = item => item) {
-    return each(transform(model, v => v ? [v] : null), itemDisplayFunction)
-}
-
-export function produce(model, itemDisplayFunction = item => item, end = text()) {
-    let f = dynamicFragment(text(), end)
-    model.observe(item => f.add(item == null ? null : itemDisplayFunction(item)))
-    return f
-}
-
-//endregion
-
-//region <Commands>
-export function set(model, value) {
-    return isObservable(value) ? () => model.set(value.get()) : () => model.set(value)
-}
-
-export function update(model, withFunction) {
-    return () => model.update(withFunction)
-}
-
-export function addTo(arrayModel, item) {
-    return update(arrayModel, a => a.push(item))
-}
-
-export function toggle(model) {
-    return () => model.set(!model.get())
-}
-
-export function when(condition, command) {
-    return () => condition.get() && command()
-}
-
-export function ctrlKey(ctrlHandler, defaultHandler) {
-    return (content, event) => event.ctrlKey ? ctrlHandler(content, event) : defaultHandler(content, event)
-}
-
-export function trigger(model) {
-    return () => model.trigger()
-}
-
-export function increment(model, by = 1) {
-    return () => model.set(model.get() + by)
-}
-
-export function decrement(model, by = 1) {
-    return increment(model, -by)
-}
-
-/*export function invert(model) {
-    return () => model.set(-model.get())
-}*/
-
-export function remove(content) {
-    return () => content.remove()
-}
-
-export function clear(content) {
-    return () => content.clear()
-}
-
-export function show(dialog) {
-    return (typeof dialog === 'string') ? () => document.getElementById(dialog).showModal() : () => dialog.get().showModal()
-}
-
-//endregion
+export function each(model, itemDisplayFunction = item => item, end = text()) {return range(text(), model, itemDisplayFunction, end)}
+export function render(model, itemDisplayFunction = item => item) {return each(transform(model, v => v ? [v] : null), itemDisplayFunction)}
+export function produce(model, itemDisplayFunction = item => item, end = text()) {let f = dynamicFragment(text(), end); model.observe(item => f.add(item == null ? null : itemDisplayFunction(item))); return f}
+export function set(model, value) {return isObservable(value) ? () => model.set(value.get()) : () => model.set(value)}
+export function update(model, withFunction) {return () => model.update(withFunction)}
+export function addTo(arrayModel, item) {return update(arrayModel, a => a.push(item))}
+export function toggle(model) {return () => model.set(!model.get())}
+export function when(condition, command) {return () => condition.get() && command()}
+export function ctrlKey(ctrlHandler, defaultHandler) {return (content, event) => event.ctrlKey ? ctrlHandler(content, event) : defaultHandler(content, event)}
+export function trigger(model) {return () => model.trigger()}
+export function increment(model, by = 1) {return () => model.set(model.get() + by)}
+export function decrement(model, by = 1) {return increment(model, -by)}
+/*export function invert(model) {    return () => model.set(-model.get())}*/
+export function remove(content) {return () => content.remove()}
+export function clear(content) {return () => content.clear()}
+export function show(dialog) {return (typeof dialog === 'string') ? () => document.getElementById(dialog).showModal() : () => dialog.get().showModal()}

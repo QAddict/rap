@@ -1,4 +1,4 @@
-import {addTo, attach, ctrlKey, each, falseTo, node, render, restParameter, set, state, stateModel, to, toggle, transform, trigger, when} from "./core.js";
+import {addTo, attach, ctrlKey, each, falseTo, node, render, restParameter, set, state, stateModel, to, toggle, transform, trigger, when} from "./rap.js";
 import {a, captionBottom, captionTop, checkbox, div, form, HtmlBuilder, input, inputText, label, reset, span, submit, table, tbody, td, th, thead, tr} from "./html.js";
 import {get, isChannel} from "./io.js"
 

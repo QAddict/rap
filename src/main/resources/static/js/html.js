@@ -1,4 +1,4 @@
-import {ElementBuilder, isObservable, join, transform, set, stateModel, to} from "./core.js";
+import {ElementBuilder, isObservable, join, transform, set, stateModel, to} from "./rap.js";
 
 //region <HTML builder>
 
