@@ -1,6 +1,5 @@
 .resizer-x:before {
-  content: '.';
-  padding: 1px;
+  content: '⋮';
 }
 
 .resizer-x {
@@ -9,6 +8,10 @@
   cursor: ew-resize;
   margin-left: 2px;
   margin-right: 2px;
+  height: 100%;
+  box-sizing: border-box;
+  padding: 1px;
+  padding-top: 45vh;
 }
 
 .selected {

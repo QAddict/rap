@@ -205,5 +205,5 @@ export function resizeableColumns(leftColumnContent, rightColumnContent, leftWid
             e.dataTransfer.setDragImage(new Image(), 0, 0)
         }).onDrag((b, e) => leftWidth.set((e.clientX - start.get()) + 'px')),
         rightColumnContent.auto()
-    ).flexRow()
+    ).flexRow().alignItems('flex-start')
 }
