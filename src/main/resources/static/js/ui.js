@@ -1,5 +1,5 @@
 import {addTo, attach, ctrlKey, each, falseTo, node, render, restParameter, set, state, stateModel, to, toggle, transform, trigger, when} from "./rap.js";
-import {a, captionBottom, captionTop, checkbox, div, form, HtmlBuilder, input, inputText, label, reset, span, submit, table, tbody, td, th, thead, tr} from "./html.js";
+import {a, captionBottom, captionTop, checkbox, div, form, HtmlBuilder, iframe, input, inputText, label, reset, span, submit, table, tbody, td, th, thead, tr} from "./html.js";
 import {get, isChannel} from "./io.js"
 
 export function expander(model, enabled = stateModel(true)) {
@@ -206,4 +206,15 @@ export function resizeableColumns(leftColumnContent, rightColumnContent, leftWid
         }).onDrag((b, e) => leftWidth.set((e.clientX - start.get()) + 'px')),
         rightColumnContent.auto()
     ).flexRow().alignItems('flex-start')
+}
+
+export function richEditor(...content) {
+    return div(
+        div(),
+        iframe().onLoad(e => {
+            let doc = e.get().contentDocument
+            new HtmlBuilder(doc.head.appendChild(doc.createElement(script))).type('module').src('/js/re.js')
+            new HtmlBuilder(doc.body).contenteditable(true)
+        })
+    )
 }

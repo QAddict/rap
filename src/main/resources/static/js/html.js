@@ -1,125 +1,494 @@
 import {ElementBuilder, isObservable, join, transform, set, stateModel, to} from "./rap.js";
 
-//region <HTML builder>
-
+/**
+ * HtmlBuilder class extends ElementBuilder class and provides methods for building HTML elements with convenient
+ * CSS styling and attributes.
+ */
 export class HtmlBuilder extends ElementBuilder {
-    constructor(node) {super(node);this.__class = []}
-    setClass(...value) {return this.set('class', join(' ', this.__class = value))}
-    addClass(...value) {return this.setClass(...this.__class.concat(...value))}
-    id(...value) {return this.set('id', ...value)}
-    name(...value) {return this.set('name', ...value)}
-    title(...value) {return this.set('title', ...value)}
-    href(...value) {return this.set('href', ...value)}
-    type(...value) {return this.set('type', ...value)}
-    readonly(...value) {return this.set('readonly', ...value)}
-    placeholder(...value) {return this.set('placeholder', ...value)}
-    pattern(...value) {return this.set('pattern', ...value)}
-    action(...value) {return this.set('action', ...value)}
-    target(...value) {return this.set('target', ...value)}
-    method(...value) {return this.set('method', ...value)}
-    size(...value) {return this.set('size', ...value)}
-    src(...value) {return this.set('src', ...value)}
-    alt(...value) {return this.set('alt', ...value)}
-    draggable(...value) {return this.set('draggable', ...value)}
-    rel(...value) {return this.set('rel', ...value)}
-    colspan(...value) {return this.set('colspan', ...value)}
-    rowspan(...value) {return this.set('rowspan', ...value)}
-    autocomplete(...value) {return this.set('autocomplete', ...value)}
-    disabled(value) {return this.set('disabled', isObservable(value) ? transform(value, to(true)) : value)}
-    content(...value) {return this.set('content', ...value)}
-    selected(value) {return this.set('selected', value)}
-    contenteditable(value) {return this.set('contenteditable', value)}
-    max(value) {return this.set('max', value)}
-    min(value) {return this.set('min', value)}
-    high(value) {return this.set('high', value)}
-    low(value) {return this.set('low', value)}
-    step(...value) {return this.set('step', ...value)}
+    constructor(node) {
+        super(node);
+        this.__class = []
+    }
 
-    display(value) {return this.css('display', isObservable(value) ? transform(value, v => v === false ? 'none' : v === true ? null : v) : value)}
-    textAlign(value) {return this.css('text-align', value)}
-    textLeft() {return this.textAlign('left')}
-    textRight() {return this.textAlign('right')}
-    textCenter() {return this.textAlign('center')}
-    verticalAlign(value) {return this.css('vertical-align', value)}
-    width(...args) {return this.css('width', ...args)}
-    height(...args) {return this.css('height', ...args)}
-    top(...args) {return this.css('top', ...args)}
-    bottom(...args) {return this.css('bottom', ...args)}
-    left(...args) {return this.css('left', ...args)}
-    right(...args) {return this.css('right', ...args)}
-    resize(value) {return this.css('resize', value)}
-    resizeHorizontal() {return this.resize('horizontal')}
-    resizeVertical() {return this.resize('vertical')}
-    color(value) {return this.css('color', value)}
-    fontSize(...args) {return this.css('font-size', ...args)}
-    fontStyle(...args) {return this.css('font-style', ...args)}
-    fontWeight(...args) {return this.css('font-weight', ...args)}
-    visibility(value) {return this.css('visibility', value)}
-    opacity(...args) {return this.css('opacity', ...args)}
-    background(...args) {return this.css('background', ...args)}
-    backgroundColor(value) {return this.css('background-color', value)}
-    backgroundImage(...args) {return this.css('background-image', ...args)}
-    backgroundRepeat(...args) {return this.css('background-repeat', ...args)}
-    backgroundSize(...args) {return this.backgroundRepeat('no-repeat').css('background-size', ...args)}
-    linearGradient(value) {return this.backgroundImage('linear-gradient(', value, ')')}
-    position(value) {return this.css('position', value)}
-    float(value) {return this.css('float', value)}
-    padding(...args) {return this.css('padding', ...args)}
-    paddingLeft(...args) {return this.css('padding-left', ...args)}
-    paddingRight(...args) {return this.css('padding-right', ...args)}
-    paddingTop(...args) {return this.css('padding-top', ...args)}
-    paddingBottom(...args) {return this.css('padding-bottom', ...args)}
-    margin(...args) {return this.css('margin', ...args)}
-    marginLeft(...args) {return this.css('margin-left', ...args)}
-    marginRight(...args) {return this.css('margin-right', ...args)}
-    marginTop(...args) {return this.css('margin-top', ...args)}
-    marginBottom(...args) {return this.css('margin-bottom', ...args)}
-    border(...args) {return this.css('border', ...args)}
-    borderTop(...args) {return this.css('border-top', ...args)}
-    borderBottom(...args) {return this.css('border-bottom', ...args)}
-    borderLeft(...args) {return this.css('border-left', ...args)}
-    borderRight(...args) {return this.css('border-right', ...args)}
-    borderRadius(...args) {return this.css('border-radius', ...args)}
-    cursor(value) {return this.css('cursor', value)}
-    transition(...value) {return this.css('transition', ...value)}
-    transform(...value) {return this.css('transform', ...value)}
-    rotate(...value) {return this.transform('rotate(', ...value, ')')}
-    overflow(...value) {return this.css('overflow', ...value)}
-    overflowHidden() {return this.overflow('hidden')}
-    overflowX(...value) {return this.css('overflow-x', ...value)}
-    overflowY(value) {return this.css('overflow-y', value)}
-    flex(...args) {return this.css('flex', ...args)}
-    auto() {return this.flex("auto")}
-    flexDirection(...args) {return this.css('flex-direction', ...args)}
-    flexRow() {return this.display('flex').flex('row')}
-    flexColumn() {return this.display('flex').flex('column')}
-    flexShrink(...args) {return this.css('flex-shrink', ...args)}
-    flexGrow(...args) {return this.css('flex-grow', ...args)}
-    alignItems(...args) {return this.css('align-items', ...args)}
-    gap(...args) {return this.css('gap', ...args)}
-    captionSide(...args) {return this.css('caption-side', ...args)}
-    whiteSpace(...args) {return this.css('white-space', ...args)}
-    nowrap() {return this.whiteSpace('nowrap')}
-    boxSizing(value) {return this.css('box-sizing', value)}
-    borderBox() {return this.boxSizing('border-box')}
-    value(...args) {return this.setProperty('value', ...args)}
-    checked(value) {return this.setProperty('checked', value)}
-    onClick(handler, bubble) {return this.on('click', handler, bubble)}
-    onSubmit(handler, bubble) {return this.on('submit', handler, bubble)}
-    onReset(handler, bubble) {return this.on('reset', handler, bubble)}
-    onInput(handler, bubble) {return this.on('input', handler, bubble)}
-    onChange(handler, bubble) {return this.on('change', handler, bubble)}
-    onMouseOver(handler) {return this.on('mouseover', handler, true)}
-    onMouseOut(handler) {return this.on('mouseout', handler, true)}
-    onKeyPress(handler) {return this.on('keypress', handler, true)}
-    onKeyDown(handler) {return this.on('keydown', handler, true)}
-    onKeyUp(handler) {return this.on('keyup', handler, true)}
-    onDragstart(handler) {return this.on('dragstart', handler, true)}
-    onDrag(handler) {return this.on('drag', handler, true)}
-    onDrop(handler) {return this.on('drop', handler, true)}
-    onDragend(handler) {return this.on('dragend', handler, true)}
-    onDragover(handler) {return this.on('dragover', handler, true)}
-    onDragleave(handler) {return this.on('dragleave', handler, true)}
+    /**
+     * Sets the class attribute of the HtmlBuilder object.
+     * It accepts any number of parameters, each of them being either static value, or an observable, which makes the
+     * class dynamic, reacting on changes of the observable value.
+     * If more values provided, they are simply concatenated.
+     *
+     * @param {...string} value - The class names to be added to the class attribute.
+     * @returns {this} - The updated HtmlBuilder object.
+     */
+    setClass(...value) {
+        return this.set('class', join(' ', this.__class = value))
+    }
+
+    /**
+     * Adds one or more CSS classes to the elements in the HtmlBuilder object.
+     *
+     * @param {...string} value - One or more CSS classes to be added.
+     *
+     * @returns {this} - Returns the modified HtmlBuilder object.
+     */
+    addClass(...value) {
+        return this.setClass(...this.__class.concat(...value))
+    }
+
+    id(...value) {
+        return this.set('id', ...value)
+    }
+
+    name(...value) {
+        return this.set('name', ...value)
+    }
+
+    title(...value) {
+        return this.set('title', ...value)
+    }
+
+    href(...value) {
+        return this.set('href', ...value)
+    }
+
+    type(...value) {
+        return this.set('type', ...value)
+    }
+
+    readonly(...value) {
+        return this.set('readonly', ...value)
+    }
+
+    placeholder(...value) {
+        return this.set('placeholder', ...value)
+    }
+
+    pattern(...value) {
+        return this.set('pattern', ...value)
+    }
+
+    action(...value) {
+        return this.set('action', ...value)
+    }
+
+    target(...value) {
+        return this.set('target', ...value)
+    }
+
+    method(...value) {
+        return this.set('method', ...value)
+    }
+
+    size(...value) {
+        return this.set('size', ...value)
+    }
+
+    src(...value) {
+        return this.set('src', ...value)
+    }
+
+    alt(...value) {
+        return this.set('alt', ...value)
+    }
+
+    draggable(...value) {
+        return this.set('draggable', ...value)
+    }
+
+    rel(...value) {
+        return this.set('rel', ...value)
+    }
+
+    colspan(...value) {
+        return this.set('colspan', ...value)
+    }
+
+    rowspan(...value) {
+        return this.set('rowspan', ...value)
+    }
+
+    autocomplete(...value) {
+        return this.set('autocomplete', ...value)
+    }
+
+    disabled(value) {
+        return this.set('disabled', isObservable(value) ? transform(value, to(true)) : value)
+    }
+
+    content(...value) {
+        return this.set('content', ...value)
+    }
+
+    selected(value) {
+        return this.set('selected', value)
+    }
+
+    contenteditable(value) {
+        return this.set('contenteditable', value)
+    }
+
+    max(value) {
+        return this.set('max', value)
+    }
+
+    min(value) {
+        return this.set('min', value)
+    }
+
+    high(value) {
+        return this.set('high', value)
+    }
+
+    low(value) {
+        return this.set('low', value)
+    }
+
+    step(...value) {
+        return this.set('step', ...value)
+    }
+
+    display(value) {
+        return this.css('display', isObservable(value) ? transform(value, v => v === false ? 'none' : v === true ? null : v) : value)
+    }
+
+    textAlign(value) {
+        return this.css('text-align', value)
+    }
+
+    textLeft() {
+        return this.textAlign('left')
+    }
+
+    textRight() {
+        return this.textAlign('right')
+    }
+
+    textCenter() {
+        return this.textAlign('center')
+    }
+
+    verticalAlign(value) {
+        return this.css('vertical-align', value)
+    }
+
+    width(...args) {
+        return this.css('width', ...args)
+    }
+
+    height(...args) {
+        return this.css('height', ...args)
+    }
+
+    top(...args) {
+        return this.css('top', ...args)
+    }
+
+    bottom(...args) {
+        return this.css('bottom', ...args)
+    }
+
+    left(...args) {
+        return this.css('left', ...args)
+    }
+
+    right(...args) {
+        return this.css('right', ...args)
+    }
+
+    resize(value) {
+        return this.css('resize', value)
+    }
+
+    resizeHorizontal() {
+        return this.resize('horizontal')
+    }
+
+    resizeVertical() {
+        return this.resize('vertical')
+    }
+
+    color(value) {
+        return this.css('color', value)
+    }
+
+    fontSize(...args) {
+        return this.css('font-size', ...args)
+    }
+
+    fontStyle(...args) {
+        return this.css('font-style', ...args)
+    }
+
+    fontWeight(...args) {
+        return this.css('font-weight', ...args)
+    }
+
+    visibility(value) {
+        return this.css('visibility', value)
+    }
+
+    opacity(...args) {
+        return this.css('opacity', ...args)
+    }
+
+    background(...args) {
+        return this.css('background', ...args)
+    }
+
+    backgroundColor(value) {
+        return this.css('background-color', value)
+    }
+
+    backgroundImage(...args) {
+        return this.css('background-image', ...args)
+    }
+
+    backgroundRepeat(...args) {
+        return this.css('background-repeat', ...args)
+    }
+
+    backgroundSize(...args) {
+        return this.backgroundRepeat('no-repeat').css('background-size', ...args)
+    }
+
+    linearGradient(value) {
+        return this.backgroundImage('linear-gradient(', value, ')')
+    }
+
+    position(value) {
+        return this.css('position', value)
+    }
+
+    float(value) {
+        return this.css('float', value)
+    }
+
+    padding(...args) {
+        return this.css('padding', ...args)
+    }
+
+    paddingLeft(...args) {
+        return this.css('padding-left', ...args)
+    }
+
+    paddingRight(...args) {
+        return this.css('padding-right', ...args)
+    }
+
+    paddingTop(...args) {
+        return this.css('padding-top', ...args)
+    }
+
+    paddingBottom(...args) {
+        return this.css('padding-bottom', ...args)
+    }
+
+    margin(...args) {
+        return this.css('margin', ...args)
+    }
+
+    marginLeft(...args) {
+        return this.css('margin-left', ...args)
+    }
+
+    marginRight(...args) {
+        return this.css('margin-right', ...args)
+    }
+
+    marginTop(...args) {
+        return this.css('margin-top', ...args)
+    }
+
+    marginBottom(...args) {
+        return this.css('margin-bottom', ...args)
+    }
+
+    border(...args) {
+        return this.css('border', ...args)
+    }
+
+    borderTop(...args) {
+        return this.css('border-top', ...args)
+    }
+
+    borderBottom(...args) {
+        return this.css('border-bottom', ...args)
+    }
+
+    borderLeft(...args) {
+        return this.css('border-left', ...args)
+    }
+
+    borderRight(...args) {
+        return this.css('border-right', ...args)
+    }
+
+    borderRadius(...args) {
+        return this.css('border-radius', ...args)
+    }
+
+    cursor(value) {
+        return this.css('cursor', value)
+    }
+
+    transition(...value) {
+        return this.css('transition', ...value)
+    }
+
+    transform(...value) {
+        return this.css('transform', ...value)
+    }
+
+    rotate(...value) {
+        return this.transform('rotate(', ...value, ')')
+    }
+
+    overflow(...value) {
+        return this.css('overflow', ...value)
+    }
+
+    overflowHidden() {
+        return this.overflow('hidden')
+    }
+
+    overflowX(...value) {
+        return this.css('overflow-x', ...value)
+    }
+
+    overflowY(value) {
+        return this.css('overflow-y', value)
+    }
+
+    flex(...args) {
+        return this.css('flex', ...args)
+    }
+
+    auto() {
+        return this.flex("auto")
+    }
+
+    flexDirection(...args) {
+        return this.css('flex-direction', ...args)
+    }
+
+    flexRow() {
+        return this.display('flex').flex('row')
+    }
+
+    flexColumn() {
+        return this.display('flex').flex('column')
+    }
+
+    flexShrink(...args) {
+        return this.css('flex-shrink', ...args)
+    }
+
+    flexGrow(...args) {
+        return this.css('flex-grow', ...args)
+    }
+
+    alignItems(...args) {
+        return this.css('align-items', ...args)
+    }
+
+    gap(...args) {
+        return this.css('gap', ...args)
+    }
+
+    captionSide(...args) {
+        return this.css('caption-side', ...args)
+    }
+
+    whiteSpace(...args) {
+        return this.css('white-space', ...args)
+    }
+
+    nowrap() {
+        return this.whiteSpace('nowrap')
+    }
+
+    boxSizing(value) {
+        return this.css('box-sizing', value)
+    }
+
+    borderBox() {
+        return this.boxSizing('border-box')
+    }
+
+    value(...args) {
+        return this.setProperty('value', ...args)
+    }
+
+    checked(value) {
+        return this.setProperty('checked', value)
+    }
+
+    onClick(handler, bubble = true) {
+        return this.on('click', handler, bubble)
+    }
+
+    onSubmit(handler, bubble) {
+        return this.on('submit', handler, bubble)
+    }
+
+    onReset(handler, bubble) {
+        return this.on('reset', handler, bubble)
+    }
+
+    onInput(handler, bubble) {
+        return this.on('input', handler, bubble)
+    }
+
+    onChange(handler, bubble) {
+        return this.on('change', handler, bubble)
+    }
+
+    onMouseOver(handler) {
+        return this.on('mouseover', handler, true)
+    }
+
+    onMouseOut(handler) {
+        return this.on('mouseout', handler, true)
+    }
+
+    onKeyPress(handler) {
+        return this.on('keypress', handler, true)
+    }
+
+    onKeyDown(handler) {
+        return this.on('keydown', handler, true)
+    }
+
+    onKeyUp(handler) {
+        return this.on('keyup', handler, true)
+    }
+
+    onLoad(handler, bubble = true) {
+        return this.on('load', handler, bubble)
+    }
+
+    onDragstart(handler) {
+        return this.on('dragstart', handler, true)
+    }
+
+    onDrag(handler) {
+        return this.on('drag', handler, true)
+    }
+
+    onDrop(handler) {
+        return this.on('drop', handler, true)
+    }
+
+    onDragend(handler) {
+        return this.on('dragend', handler, true)
+    }
+
+    onDragover(handler) {
+        return this.on('dragover', handler, true)
+    }
+
+    onDragleave(handler) {
+        return this.on('dragleave', handler, true)
+    }
 
     transfer(channel, data) {
         return this.draggable(true).cursor('grab').onDragstart(set(channel, data)).onDragend(set(channel, null))
@@ -151,46 +520,97 @@ export class HtmlBuilder extends ElementBuilder {
     dropTo(target) {
         return this.receive(channelOf(target), item => target.update(a => a.push(item)))
     }
-    
+
     /*
      Special binding
      */
     edit(model) {
         this.name(model.getName())
-        if(this.get().type === "checkbox")
+        if (this.get().type === "checkbox")
             return this.checked(model).onChange(() => model.set(this.get().checked))
-        if(this.get().type === "radio")
+        if (this.get().type === "radio")
             return this.checked(model.get() === this.get().value).onChange(() => this.get().checked && model.set(this.get().value))
         return this.value(model).onChange(() => model.set(this.get().value))
     }
 
 }
-//endregion
 
-//region <HTML entries>
 export function builder(node, ...content) {
     if (node instanceof Node) return new HtmlBuilder(node).add(...content)
     throw new ReferenceError("Provided value must be instance of Node. Got: " + node);
 }
 
-export function body(...content) {return builder(document.body, ...content)}
-export function head(...content) {return builder(document.head, ...content)}
-export function byId(id) {return builder(document.getElementById(id))}
-export function element(name, ...content) {return builder(document.createElement(name), ...content)}
-export function meta() {return element('meta')}
-export function base() {return element('base')}
-export function div(...content) {return element('div', ...content)}
-export function span(...content) {return element('span', ...content)}
-export function img(...src) {return element('img').src(...src)}
-export function link(rel) {return element('link').rel(rel)}
-export function a(...content) {return element('a', ...content)}
-export function h1(...content) {return element('h1', ...content)}
-export function h2(...content) {return element('h2', ...content)}
-export function h3(...content) {return element('h3', ...content)}
-export function h4(...content) {return element('h4', ...content)}
-export function h5(...content) {return element('h5', ...content)}
-export function h6(...content) {return element('h6', ...content)}
-export function p(...content) {return element('p', ...content)}
+export function body(...content) {
+    return builder(document.body, ...content)
+}
+
+export function head(...content) {
+    return builder(document.head, ...content)
+}
+
+export function byId(id) {
+    return builder(document.getElementById(id))
+}
+
+export function element(name, ...content) {
+    return builder(document.createElement(name), ...content)
+}
+
+export function meta() {
+    return element('meta')
+}
+
+export function base() {
+    return element('base')
+}
+
+export function div(...content) {
+    return element('div', ...content)
+}
+
+export function span(...content) {
+    return element('span', ...content)
+}
+
+export function img(...src) {
+    return element('img').src(...src)
+}
+
+export function link(rel) {
+    return element('link').rel(rel)
+}
+
+export function a(...content) {
+    return element('a', ...content)
+}
+
+export function h1(...content) {
+    return element('h1', ...content)
+}
+
+export function h2(...content) {
+    return element('h2', ...content)
+}
+
+export function h3(...content) {
+    return element('h3', ...content)
+}
+
+export function h4(...content) {
+    return element('h4', ...content)
+}
+
+export function h5(...content) {
+    return element('h5', ...content)
+}
+
+export function h6(...content) {
+    return element('h6', ...content)
+}
+
+export function p(...content) {
+    return element('p', ...content)
+}
 
 /**
  * Create new DOM Element 'pre' and wrap it with a builder.
@@ -582,4 +1002,3 @@ export function fragment(...args) {
     return builder(document.createDocumentFragment()).add(...args)
 }
 
-//endregion

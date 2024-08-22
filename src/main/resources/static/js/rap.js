@@ -415,7 +415,7 @@ export class Content {
 
     /**
      * Return the node itself.
-     * @returns {*}
+     * @returns {Node}
      */
     get() {
         return this.__node
@@ -482,6 +482,12 @@ export class DynamicFragmentBuilder extends Content {
         this.get().appendChild((this.__end = end).get())
     }
 
+    /**
+     * Adds the specified arguments to the end of the fragment.
+     *
+     * @param {...*} args - The arguments to be added to the element.
+     * @returns {DynamicFragmentBuilder} - The current instance of DynamicFragmentBuilder.
+     */
     add(...args) {
         this.__end.prepend(...args);
         return this
@@ -509,11 +515,24 @@ export class ElementBuilder extends Content {
         super(node);
     }
 
+    /**
+     * Adds one or more elements as children to the current element.
+     * The elements can be ElementBuilders, Nodes, Observables or simple objects. Observables will make such child
+     * dynamic, responding to changes to an observable value.
+     *
+     * @param {...ElementBuilder|Node|Observable|Object} args - The elements to add as children. Null or undefined values are ignored.
+     * @returns {ElementBuilder} - The updated ElementBuilder object.
+     */
     add(...args) {
         for (let i = 0; i < args.length; i++) if (args[i] != null) this.get().appendChild(node(args[i]));
         return this
     }
 
+    /**
+     * Clears all child elements from the current node.
+     *
+     * @returns {ElementBuilder} The updated ElementBuilder instance.
+     */
     clear() {
         let node = this.get();
         while (node.firstChild) node.removeChild(node.firstChild);
@@ -533,19 +552,58 @@ export class ElementBuilder extends Content {
         return this
     }
 
+    /**
+     * Sets an attribute on the current element.
+     * It accepts any number of parameters, each of them being either static value, or an observable, which makes the
+     * attribute dynamic, reacting on changes of the observable value.
+     * If more values provided, they are simply concatenated.
+     *
+     * @param {string} name - The name of the attribute to set.
+     * @param {...*} args - The value(s) to set for the attribute.
+     * @returns {this} - Returns the current instance of the ElementBuilder for method chaining.
+     */
     set(name, ...args) {
         return this._manipulate(value => value == null ? this.get().removeAttribute(name) : this.get().setAttribute(name, value), args)
     }
 
+    /**
+     * Manipulates the CSS property of the ElementBuilder's element.
+     * It accepts any number of parameters, each of them being either static value, or an observable, which makes the
+     * CSS property dynamic, reacting on changes of the observable value.
+     * If more values provided, they are simply concatenated.
+     *
+     * @param {string} property - The CSS property name to be manipulated.
+     * @param {...(string|null)} args - The CSS property value(s) to be set. If set to null,
+     *                                  the property will be removed.
+     * @returns {this} - The ElementBuilder instance.
+     */
     css(property, ...args) {
         return this._manipulate(value => value == null ? this.get().style.removeProperty(property) : this.get().style.setProperty(property, value), args)
     }
 
+    /**
+     * Sets a property on the element.
+     * It accepts any number of parameters, each of them being either static value, or an observable, which makes the
+     * object property dynamic, reacting on changes of the observable value.
+     * If more values provided, they are simply concatenated. If only one value provided, then it is used as is.
+     *
+     * @param {string} name - The name of the property to set.
+     * @param {...*} args - The arguments to pass to the property setter.
+     * @returns {ElementBuilder} - The current instance of ElementBuilder.
+     */
     setProperty(name, ...args) {
         return this._manipulate(value => this.get()[name] = (value == null) ? null : value, args)
     }
 
-    on(event, handler, bubble) {
+    /**
+     * Attaches an event listener to the element.
+     *
+     * @param {string} event - The event type to listen for.
+     * @param {function} handler - The event handler function to be executed when the event is triggered.
+     * @param {boolean} [bubble=false] - Indicates whether the event should bubble up through the DOM tree.
+     * @returns {ElementBuilder} - Returns the current instance of the ElementBuilder.
+     */
+    on(event, handler, bubble = false) {
         this.get().addEventListener(event, bubble ? e => handler(this, e) : e => {
             handler(this, e);
             e.preventDefault();
@@ -592,11 +650,23 @@ export function produce(model, itemDisplayFunction = item => item, end = text())
 }
 
 
-
+/**
+ * Command factory to create command, which sets value of a model to provided value or actual value of provided source
+ * model.
+ * @param model Target model whose value will be changed on command execution.
+ * @param value Source value or model, which will be passed to the target model on command execution.
+ * @returns {{(): *, (): *}}
+ */
 export function set(model, value) {
     return isObservable(value) ? () => model.set(value.get()) : () => model.set(value)
 }
 
+/**
+ * Command factory to create command, which updates state of a model using provided function.
+ * @param model Target model whose value will be changed on command execution.
+ * @param withFunction
+ * @returns {function(): Observable}
+ */
 export function update(model, withFunction) {
     return () => model.update(withFunction)
 }
@@ -605,6 +675,12 @@ export function addTo(arrayModel, item) {
     return update(arrayModel, a => a.push(item))
 }
 
+/**
+ * Creates command to toggle the provided model by setting its value to the opposite of its current value.
+ *
+ * @param {Object} model - The model to toggle.
+ * @returns {function(): *} - A command function that toggles the model.
+ */
 export function toggle(model) {
     return () => model.set(!model.get())
 }
