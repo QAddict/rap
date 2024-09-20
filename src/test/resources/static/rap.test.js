@@ -25,8 +25,8 @@
  */
 
 
-import {state} from "static/js/rap.js";
-import {Assert, test} from "static/test.js";
+import {state} from "/js/mvc.js";
+import {Assert, test} from "./test.js";
 
 test({
 

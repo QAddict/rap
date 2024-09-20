@@ -24,7 +24,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import {ElementBuilder, isObservable, join, transform, set, stateModel, to} from "./rap.js";
+import {ElementBuilder, isObservable, join, transform, set, stateModel, to} from "./mvc.js";
 
 /**
  * HtmlBuilder class extends ElementBuilder class and provides methods for building HTML elements with convenient
@@ -51,6 +51,9 @@ export class HtmlBuilder extends ElementBuilder {
 
     /**
      * Adds one or more CSS classes to the elements in the HtmlBuilder object.
+     * It accepts any number of parameters, each of them being either static value, or an observable, which makes the
+     * class dynamic, reacting on changes of the observable value.
+     * If more values provided, they are simply concatenated.
      *
      * @param {...string} value - One or more CSS classes to be added.
      *
@@ -68,6 +71,15 @@ export class HtmlBuilder extends ElementBuilder {
         return this.set('name', ...value)
     }
 
+    /**
+     * Sets the title of the value.
+     * It accepts any number of parameters, each of them being either static value, or an observable, which makes the
+     * class dynamic, reacting on changes of the observable value.
+     * If more values provided, they are simply concatenated.
+     *
+     * @param {...*} value - The value of the title.
+     * @return {Object} - The updated object with the new title.
+     */
     title(...value) {
         return this.set('title', ...value)
     }
@@ -561,6 +573,14 @@ export class HtmlBuilder extends ElementBuilder {
 
 }
 
+/**
+ * Creates an instance of ElementBuilder with the provided node and content.
+ *
+ * @param {Node} node - The node element to be built.
+ * @param {...*} content - The content to be added to the element.
+ * @returns {HtmlBuilder} - The instance of ElementBuilder.
+ * @throws {ReferenceError} - If the provided node is not an instance of Node.
+ */
 export function builder(node, ...content) {
     if (node instanceof Node) return new HtmlBuilder(node).add(...content)
     throw new ReferenceError("Provided value must be instance of Node. Got: " + node);

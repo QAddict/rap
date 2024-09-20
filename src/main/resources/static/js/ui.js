@@ -24,7 +24,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import {addTo, attach, ctrlKey, each, falseTo, node, render, restParameter, set, state, stateModel, to, toggle, transform, trigger, when} from "./rap.js";
+import {addTo, attach, ctrlKey, each, falseTo, node, render, restParameter, set, state, stateModel, to, toggle, transform, trigger, when} from "./mvc.js";
 import {a, captionBottom, captionTop, checkbox, div, form, HtmlBuilder, iframe, input, inputText, label, reset, span, submit, table, tbody, td, th, thead, tr} from "./html.js";
 import {get, isChannel} from "./io.js"
 
@@ -227,7 +227,7 @@ export function dataTable(dataSource) {
 
 function nav(channel, link) {
     let l = a().setClass('rap-paging ', link + '-page').title('Go to ' + link + ' page')
-    if (channel.output.get()._links?.[link])
+    if (channel.output.get()?._links?.[link])
         l.onClick(set(channel.uri, channel.output.get()._links?.[link]?.href))
     else
         l.color('silver')

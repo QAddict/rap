@@ -24,7 +24,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import {Observable, state, stateModel, transform, TransformedState} from "./rap.js";
+import {Observable, state, stateModel, transform, TransformedState} from "./mvc.js";
 
 export function fromJson(initialValue = null) {
     return new TransformedState(request => request == null ? null : JSON.parse(request.responseText), initialValue)

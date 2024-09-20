@@ -430,6 +430,10 @@ export function locationEncoded() {
     return data
 }
 
+function allArgsOf(args) {
+    return (args.length === 1 && Array.isArray(args[0]) ? args[0] : args).filter(v => v != null)
+}
+
 /**
  * Base class for the DOM based View layer.
  * It wraps a DOM Node instance, and provides basic fluent interface for dealing with it.
@@ -472,7 +476,7 @@ export class Content {
      * @returns {Content}
      */
     prepend(...content) {
-        if (this.__node.parentNode) content.forEach(i => this.__node.parentNode.insertBefore(node(i), this.__node));
+        if (this.__node.parentNode) allArgsOf(content).forEach(i => this.__node.parentNode.insertBefore(node(i), this.__node));
         return this
     }
 }
@@ -550,7 +554,7 @@ export class ElementBuilder extends Content {
      * @returns {ElementBuilder} - The updated ElementBuilder object.
      */
     add(...args) {
-        for (let i = 0; i < args.length; i++) if (args[i] != null) this.get().appendChild(node(args[i]));
+        allArgsOf(args).forEach(arg => this.get().appendChild(node(arg)))
         return this
     }
 
@@ -666,12 +670,8 @@ export function each(model, itemDisplayFunction = item => item, end = text()) {
 }
 
 export function render(model, itemDisplayFunction = item => item) {
-    return each(transform(model, v => v ? [v] : null), itemDisplayFunction)
-}
-
-export function produce(model, itemDisplayFunction = item => item, end = text()) {
-    let f = dynamicFragment(text(), end);
-    model.observe(item => f.add(item == null ? null : itemDisplayFunction(item)));
+    let f = dynamicFragment(text(), text())
+    model.observe(value => value == null ? f.clear() : f.set(itemDisplayFunction(value)))
     return f
 }
 
