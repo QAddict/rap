@@ -630,15 +630,15 @@ export class ElementBuilder extends Content {
      *
      * @param {string} event - The event type to listen for.
      * @param {function} handler - The event handler function to be executed when the event is triggered.
-     * @param {boolean} [bubble=false] - Indicates whether the event should bubble up through the DOM tree.
+     * @param {boolean} [preventDefault=true] - Indicates whether the event should bubble up through the DOM tree.
      * @returns {ElementBuilder} - Returns the current instance of the ElementBuilder.
      */
-    on(event, handler, bubble = false) {
-        this.get().addEventListener(event, bubble ? e => handler(this, e) : e => {
+    on(event, handler, preventDefault = true) {
+        this.get().addEventListener(event, preventDefault ? e => {
             handler(this, e);
             e.preventDefault();
             return false
-        });
+        } : e => handler(this, e));
         return this
     }
 }

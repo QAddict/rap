@@ -163,9 +163,9 @@ export class DataTable extends HtmlBuilder {
         let vis = state(false)
         this.add(
             captionTop().position('relative').add(
-                div().setClass('rap-columns').position('absolute').right('0', '').top('0', '').marginLeft('-0.5', 'em').add(
-                    a('⋮').setClass('rap-columns-toggle').onClick(toggle(vis)),
-                    div().setClass('rap-columns-visibility').display(vis).position('absolute').textLeft().whiteSpace('nowrap').right(0).add(
+                div().class('rap-columns').position('absolute').right('0', '').top('0', '').marginLeft('-0.5', 'em').add(
+                    a('⋮').class('rap-columns-toggle').onClick(toggle(vis)),
+                    div().class('rap-columns-visibility').display(vis).position('absolute').textLeft().whiteSpace('nowrap').right(0).add(
                         each(this.columnsModel, column => div().add(
                             checkbox(column.getName()).checked(column.hidden() ? null : 'checked').id(column.getName()).onChange(() => {
                                 column.hide(!column.hidden());
@@ -213,10 +213,10 @@ export function dataTable(dataSource) {
                 div(form().onSubmit(event => ds.uri.set(parseInt(event.target.page.value) - 1)).add(
                     nav(ds, 'first').add('\u226A'),
                     nav(ds, 'prev').add('<'),
-                    span('Page: ', input('page').width(2, 'em').value(page.number), ' of ', page.totalPages, ' (rows ', (page.number * page.size), ' - ', (page.number * page.size), ' of ', page.totalElements, ')').setClass('rap-paging'),
+                    span('Page: ', input('page').width(2, 'em').value(page.number), ' of ', page.totalPages, ' (rows ', (page.number * page.size), ' - ', (page.number * page.size), ' of ', page.totalElements, ')').class('rap-paging'),
                     nav(ds, 'next').add('>'),
                     nav(ds, 'last').add('\u226B'),
-                    //a().setClass('paging reload-page', transform(loading, to(' data-loading'))).add('\u21BB').title('Reload page').onClick(trigger(page))
+                    //a().class('paging reload-page', transform(loading, to(' data-loading'))).add('\u21BB').title('Reload page').onClick(trigger(page))
                 ).auto(), form(
                     ...Object.entries(ds.get()._links).filter(([key]) => key.startsWith('size')).map(([key]) => nav(ds, key).add(key.substring(4))),
                 )).flexRow()
@@ -226,7 +226,7 @@ export function dataTable(dataSource) {
 }
 
 function nav(channel, link) {
-    let l = a().setClass('rap-paging ', link + '-page').title('Go to ' + link + ' page')
+    let l = a().class('rap-paging ', link + '-page').title('Go to ' + link + ' page')
     if (channel.output.get()?._links?.[link])
         l.onClick(set(channel.uri, channel.output.get()._links?.[link]?.href))
     else
@@ -275,7 +275,7 @@ export function resizeableColumns(leftColumnContent, rightColumnContent, leftWid
     let start = state(0)
     return div(
         leftColumnContent.width(leftWidth),
-        div().setClass('resizer-x').draggable(true).onDragstart((b, e) => {
+        div().class('resizer-x').draggable(true).onDragstart((b, e) => {
             start.set(e.clientX - leftColumnContent.get().clientWidth);
             e.dataTransfer.setDragImage(new Image(), 0, 0)
         }).onDrag((b, e) => leftWidth.set((e.clientX - start.get()) + 'px')),

@@ -26,9 +26,17 @@
 
 import {ElementBuilder, isObservable, join, transform, set, stateModel, to} from "./mvc.js";
 
+let modelChannels = new Map()
+
+function channelOf(model) {
+    if(!modelChannels.has(model)) modelChannels.set(model, stateModel())
+    return modelChannels.get(model)
+}
+
 /**
- * HtmlBuilder class extends ElementBuilder class and provides methods for building HTML elements with convenient
- * CSS styling and attributes.
+ * HtmlBuilder is a class that assists in constructing HTML elements and setting their attributes and styles.
+ * It extends the ElementBuilder class and provides various methods to set attributes, CSS properties,
+ * and add classes to the HTML elements.
  */
 export class HtmlBuilder extends ElementBuilder {
     constructor(node) {
@@ -45,7 +53,7 @@ export class HtmlBuilder extends ElementBuilder {
      * @param {...string} value - The class names to be added to the class attribute.
      * @returns {this} - The updated HtmlBuilder object.
      */
-    setClass(...value) {
+    class(...value) {
         return this.set('class', join(' ', this.__class = value))
     }
 
@@ -60,9 +68,15 @@ export class HtmlBuilder extends ElementBuilder {
      * @returns {this} - Returns the modified HtmlBuilder object.
      */
     addClass(...value) {
-        return this.setClass(...this.__class.concat(...value))
+        return this.class(...this.__class.concat(...value))
     }
 
+    /**
+     * Sets the 'id' property for the wrapped HTML DOM node.
+     *
+     * @param {...any} value - The value(s) to be assigned to the 'id' property.
+     * @return {Object} The current instance with updated 'id' property.
+     */
     id(...value) {
         return this.set('id', ...value)
     }
@@ -460,72 +474,76 @@ export class HtmlBuilder extends ElementBuilder {
         return this.setProperty('checked', value)
     }
 
-    onClick(handler, bubble = true) {
-        return this.on('click', handler, bubble)
+    onClick(handler, preventDefault = true) {
+        return this.on('click', handler, preventDefault)
     }
 
-    onSubmit(handler, bubble) {
-        return this.on('submit', handler, bubble)
+    onDoubleClick(handler, preventDefault = true) {
+        return this.on('dblclick', handler, preventDefault)
     }
 
-    onReset(handler, bubble) {
-        return this.on('reset', handler, bubble)
+    onSubmit(handler, preventDefault = true) {
+        return this.on('submit', handler, preventDefault)
     }
 
-    onInput(handler, bubble) {
-        return this.on('input', handler, bubble)
+    onReset(handler, preventDefault = false) {
+        return this.on('reset', handler, preventDefault)
     }
 
-    onChange(handler, bubble) {
-        return this.on('change', handler, bubble)
+    onInput(handler, preventDefault = false) {
+        return this.on('input', handler, preventDefault)
     }
 
-    onMouseOver(handler) {
-        return this.on('mouseover', handler, true)
+    onChange(handler, preventDefault = false) {
+        return this.on('change', handler, preventDefault)
     }
 
-    onMouseOut(handler) {
-        return this.on('mouseout', handler, true)
+    onMouseOver(handler, preventDefault = false) {
+        return this.on('mouseover', handler, preventDefault)
     }
 
-    onKeyPress(handler) {
-        return this.on('keypress', handler, true)
+    onMouseOut(handler, preventDefault = false) {
+        return this.on('mouseout', handler, preventDefault)
     }
 
-    onKeyDown(handler) {
-        return this.on('keydown', handler, true)
+    onKeyPress(handler, preventDefault = false) {
+        return this.on('keypress', handler, preventDefault)
     }
 
-    onKeyUp(handler) {
-        return this.on('keyup', handler, true)
+    onKeyDown(handler, preventDefault = false) {
+        return this.on('keydown', handler, preventDefault)
     }
 
-    onLoad(handler, bubble = true) {
-        return this.on('load', handler, bubble)
+    onKeyUp(handler, preventDefault = false) {
+        return this.on('keyup', handler, preventDefault)
     }
 
-    onDragstart(handler) {
-        return this.on('dragstart', handler, true)
+    onLoad(handler, preventDefault = false) {
+        return this.on('load', handler, preventDefault)
     }
 
-    onDrag(handler) {
-        return this.on('drag', handler, true)
+    onDragstart(handler, preventDefault = false) {
+        return this.on('dragstart', handler, preventDefault)
     }
 
-    onDrop(handler) {
-        return this.on('drop', handler, true)
+    onDrag(handler, preventDefault = false) {
+        return this.on('drag', handler, preventDefault)
     }
 
-    onDragend(handler) {
-        return this.on('dragend', handler, true)
+    onDrop(handler, preventDefault = false) {
+        return this.on('drop', handler, preventDefault)
     }
 
-    onDragover(handler) {
-        return this.on('dragover', handler, true)
+    onDragend(handler, preventDefault = false) {
+        return this.on('dragend', handler, preventDefault)
     }
 
-    onDragleave(handler) {
-        return this.on('dragleave', handler, true)
+    onDragover(handler, preventDefault = false) {
+        return this.on('dragover', handler, preventDefault)
+    }
+
+    onDragleave(handler, preventDefault = false) {
+        return this.on('dragleave', handler, preventDefault)
     }
 
     transfer(channel, data) {
@@ -600,6 +618,18 @@ export function byId(id) {
 
 export function element(name, ...content) {
     return builder(document.createElement(name), ...content)
+}
+
+export function header(...content) {
+    return element('header', ...content)
+}
+
+export function footer(...content) {
+    return element('footer', ...content)
+}
+
+export function main(...content) {
+    return element('main', ...content)
 }
 
 export function meta() {
@@ -868,6 +898,14 @@ export function table(...content) {
     return element('table', ...content)
 }
 
+
+export function col(...content) {
+    return element('col', ...content)
+}
+
+export function colgroup(...content) {
+    return element('colgroup', ...content)
+}
 /**
  * Create new DOM Element 'tbody' and wrap it with a builder.
  * @returns {HtmlBuilder} New XBuilder instance.
