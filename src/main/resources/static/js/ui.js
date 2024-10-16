@@ -135,17 +135,17 @@ export class DataTable extends HtmlBuilder {
         this.moveEnabled = false
         this.visibleColumnsModel = transform(this.columnsModel, cols => cols.filter(col => !col.hidden()))
         this.add(
-            thead(tr(each(this.visibleColumnsModel, (column, index) => {
+            thead(tr(render(this.visibleColumnsModel, each((column, index) => {
                 let header = th().resizeHorizontal().overflowHidden()
                 if (this.moveEnabled) header
                     .transfer(columnMove, index)
                     .receive(columnMove, from => this.moveColumn(from, index), 'rap-table-header-receiver', 'rap-table-header-drop')
                 return header.add(column.renderHeader(header, index, this))
-            }))),
-            tbody(each(detectSource(dataModel), (item, index) => tr().apply((tr, data) => this.rowCustomizers.forEach(c => c(tr, data)), item).add(each(this.visibleColumnsModel, column => {
+            })))),
+            tbody(render(detectSource(dataModel), each((item, index) => tr().apply((tr, data) => this.rowCustomizers.forEach(c => c(tr, data)), item).add(render(this.visibleColumnsModel, each(column => {
                 let cell = td()
                 return cell.add(column.renderCell(item, cell, index, this))
-            })))),
+            })))))),
         )
     }
 
@@ -166,13 +166,13 @@ export class DataTable extends HtmlBuilder {
                 div().class('rap-columns').position('absolute').right('0', '').top('0', '').marginLeft('-0.5', 'em').add(
                     a('⋮').class('rap-columns-toggle').onClick(toggle(vis)),
                     div().class('rap-columns-visibility').display(vis).position('absolute').textLeft().whiteSpace('nowrap').right(0).add(
-                        each(this.columnsModel, column => div().add(
+                        render(this.columnsModel, each(column => div().add(
                             checkbox(column.getName()).checked(column.hidden() ? null : 'checked').id(column.getName()).onChange(() => {
                                 column.hide(!column.hidden());
                                 this.columnsModel.trigger()
                             }, true),
                             label(column.getName()).set('for', column.getName())
-                        ))
+                        )))
                     )
                 )
             )

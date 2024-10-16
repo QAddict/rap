@@ -659,19 +659,13 @@ export function dynamicFragment(start = text(), end = text()) {
     return new DynamicFragmentBuilder(start, end)
 }
 
-export function range(start, model, itemDisplayFunction = item => item, end = text()) {
-    let f = dynamicFragment(start, end)
-    model.observe(value => f.set(...(Array.isArray(value) ? value : null == value ? [] : [value]).map((item, index) => itemDisplayFunction(item, index))))
-    return f
+export function each(itemDisplayFunction = item => item) {
+    return array => array.map(itemDisplayFunction)
 }
 
-export function each(model, itemDisplayFunction = item => item, end = text()) {
-    return range(text(), model, itemDisplayFunction, end)
-}
-
-export function render(model, itemDisplayFunction = item => item) {
+export function render(model, itemDisplayFunction = item => item, nullDisplayFunction = () => null) {
     let f = dynamicFragment(text(), text())
-    model.observe(value => value == null ? f.clear() : f.set(itemDisplayFunction(value)))
+    model.observe(value => f.set(value == null ? nullDisplayFunction() : itemDisplayFunction(value)))
     return f
 }
 
