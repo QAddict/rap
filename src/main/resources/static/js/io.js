@@ -98,6 +98,10 @@ export class Channel extends Observable {
         return this.triggerOn(this.uri)
     }
 
+    triggerOnUriChanges() {
+        return this.triggerOnChanges(this.uri)
+    }
+
     triggerOnChanges(...input) {
         input.forEach(i => i.observeChanges(() => this.trigger()));
         return this
@@ -108,6 +112,7 @@ export class Channel extends Observable {
         this.setState({state: XMLHttpRequest.UNSENT, loaded: 0, loading: false})
         request.onreadystatechange = () => {
             if (request.readyState === XMLHttpRequest.DONE) if (request.status === 200 || request.status === 0) try {
+                request.onerror(null)
                 this.set(request)
             } catch (error) {
                 request.onerror(null)
@@ -126,7 +131,7 @@ export class Channel extends Observable {
         request.open(this.method, this.uri.get())
         Object.entries(this.headers).forEach(([key, value]) => request.setRequestHeader(key, value))
         request.send(this.body.get())
-        return request
+        return this
     }
 
 }
