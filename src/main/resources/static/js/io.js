@@ -109,7 +109,7 @@ export class Channel extends Observable {
 
     trigger() {
         let request = new XMLHttpRequest()
-        this.setState({state: XMLHttpRequest.UNSENT, loaded: 0, loading: false})
+        this.setState({state: XMLHttpRequest.UNSENT, loaded: 0, loading: true})
         request.onreadystatechange = () => {
             if (request.readyState === XMLHttpRequest.DONE) if (request.status === 200 || request.status === 0) try {
                 request.onerror(null)
